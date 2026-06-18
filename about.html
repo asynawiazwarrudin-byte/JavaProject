@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Muhammad Asynawi — AI Student · Developer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+
+    <div class="scroll-progress" id="scrollProgress"></div>
+
+    <div class="loader" id="loader">
+        <div class="tri"></div>
+    </div>
+
+    <!-- NAVBAR -->
+    <nav class="navbar" id="navbar">
+        <a href="./index.html" class="nav-brand"><span class="tri"></span> Asynawi Azwarrudin</a>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="./index.html">Home</a></li>
+            <li><a href="./about.html" class="active">About</a></li>
+            <li><a href="./projects.html">Portfolio</a></li>
+            <li><a href="./contact.html">Contact</a></li>
+        </ul>
+        <button class="hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')">
+            <span></span><span></span><span></span>
+        </button>
+    </nav>
+
+    <!-- ═══ ABOUT ═══ -->
+    <section class="section" id="about" style="padding-top: 120px;">
+        <div class="sec-head reveal">
+            <span class="eyebrow">01 — About</span>
+            <h2>Who I am</h2>
+        </div>
+        <div class="about-wrapper">
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div class="about-media reveal" style="border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;">
+                    <img src="./asynawi_profile.png" alt="Muhammad Asynawi"
+                        style="width: 100%; display: block; object-fit: cover; aspect-ratio: 4/5;">
+                </div>
+                
+                <!-- System Specifications Widget -->
+                <div class="reveal" style="border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; background: var(--bg-2); border-left: 3px solid #4da3ff;">
+                    <h5 style="font-family: var(--mono); font-size: 0.72rem; color: var(--fg-3); text-transform: uppercase; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 6px; height: 6px; border-radius: 50%; background: #4da3ff; box-shadow: 0 0 8px #4da3ff;"></span>
+                        System Specifications
+                    </h5>
+                    <div style="display: flex; flex-direction: column; gap: 12px; font-size: 0.85rem; font-family: var(--sans);">
+                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border); padding-bottom: 8px;">
+                            <span style="color: var(--fg-3);">Location</span>
+                            <span style="font-weight: 500;">Melaka, Malaysia</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border); padding-bottom: 8px;">
+                            <span style="color: var(--fg-3);">Specialization</span>
+                            <span style="font-weight: 500;">Applied AI &amp; Software Eng.</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border); padding-bottom: 8px;">
+                            <span style="color: var(--fg-3);">Primary Stacks</span>
+                            <span style="font-weight: 500; font-family: var(--mono); font-size: 0.8rem;">Python, C++, PHP, MySQL</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: var(--fg-3);">Terminal shell</span>
+                            <span style="font-family: var(--mono); font-size: 0.8rem; color: #4da3ff; background: rgba(77, 163, 255, 0.05); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(77, 163, 255, 0.15);">asynawi@utem:~$</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="about-info reveal">
+                <div class="name">Muhammad Asynawi Azwarrudin</div>
+                <div class="title-role">AI Student · Developer</div>
+                
+                <p class="bio">I'm a Bachelor of Computer Science (Artificial Intelligence) student at UTeM, with a
+                    Diploma in Electronic Computer from Politeknik Ungku Omar behind me. My work sits where intelligent
+                    algorithms meet real software: I design and train machine learning models, fuzzy inference systems,
+                    and rule-based expert systems, then build them into the web and desktop applications that put them
+                    to work. I care less about models that look good on paper and more about systems that hold up when a
+                    real user depends on them.</p>
+                <p class="bio" style="margin-bottom: 24px;">That product mindset comes from a background most CS students don't have. I built the
+                    brand website and e-commerce storefront for NERO°, an automotive care brand, and I've managed daily
+                    operations as a barista and outlet supervisor at Blend Coffee Roasters, supported users hands-on in
+                    IT, and represented my peers on the Student Representative Council. Each role taught me something a
+                    lecture can't — how to ship under pressure, lead a team, and stay close to the person on the other
+                    end of the product.</p>
+
+                <!-- Console Status Code Block -->
+                <pre style="background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px; padding: 18px; font-family: var(--mono); font-size: 0.8rem; color: var(--fg-2); overflow-x: auto; line-height: 1.6; margin-bottom: 32px; border-left: 3px solid #3ad17b;">
+<span style="color: #6e6e6e;">// System initialization sequence</span>
+[STATUS] Core AI Engine: Active
+[STATUS] Local model offline execution: Ready (Ollama)
+[STATUS] Edge node integrations: Calibrated
+[MISSION] Translate intelligent algorithms into logical, user-centric interfaces.</pre>
+                
+                <div style="margin-top: 32px;">
+                    <a href="./projects.html" class="btn btn-primary">See my work →</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Focus & Personal Grid (Modern Developer Dashboard) -->
+        <div class="grid focus-grid" style="margin-top: 48px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
+            <div class="cell reveal" style="display: flex; flex-direction: column; justify-content: center; padding: 40px 30px;">
+                <h4 style="font-family: var(--mono); font-size: 0.74rem; text-transform: uppercase; color: var(--fg-3); letter-spacing: 0.05em; margin-bottom: 16px; display: flex; align-items: center; gap: 6px;">
+                    <span style="width: 5px; height: 5px; border-radius: 50%; background: #4da3ff; box-shadow: 0 0 8px #4da3ff;"></span>
+                    Current Focus
+                </h4>
+                <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 12px; letter-spacing: -0.02em;">Local LLM Architectures</h3>
+                <p style="font-size: 0.9rem; color: var(--fg-2); line-height: 1.65; margin: 0;">Exploring localized AI development workflows. Focused on compiling, optimizing, and deploying custom large language models (LLMs) locally using Ollama, prioritizing data privacy and offline resource efficiency.</p>
+            </div>
+            <div class="cell reveal" style="padding: 40px 30px;">
+                <h4 style="font-family: var(--mono); font-size: 0.74rem; text-transform: uppercase; color: var(--fg-3); letter-spacing: 0.05em; margin-bottom: 20px; display: flex; align-items: center; gap: 6px;">
+                    <span style="width: 5px; height: 5px; border-radius: 50%; background: #3ad17b; box-shadow: 0 0 8px #3ad17b;"></span>
+                    Beyond the Screen
+                </h4>
+                
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <div style="display: flex; gap: 12px; align-items: start;">
+                        <span style="font-size: 1.2rem; line-height: 1; flex-shrink: 0; padding-top: 2px;">☕</span>
+                        <div>
+                            <h5 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 3px; color: var(--fg);">Cafe Hopping &amp; Networking</h5>
+                            <p style="font-size: 0.8rem; color: var(--fg-2); line-height: 1.45; margin: 0;">Exploring specialty roasters, sampling filter coffees, and analyzing unique menu items to spark discussions and network.</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: start;">
+                        <span style="font-size: 1.2rem; line-height: 1; flex-shrink: 0; padding-top: 2px;">🥾</span>
+                        <div>
+                            <h5 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 3px; color: var(--fg);">Hiking &amp; Nature Appreciation</h5>
+                            <p style="font-size: 0.8rem; color: var(--fg-2); line-height: 1.45; margin: 0;">Trekking forest trails and waterfalls to appreciate natural creation, clean environments, and maintain physical fitness.</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: start;">
+                        <span style="font-size: 1.2rem; line-height: 1; flex-shrink: 0; padding-top: 2px;">🏸</span>
+                        <div>
+                            <h5 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 3px; color: var(--fg);">Recreational Sports &amp; Gaming</h5>
+                            <p style="font-size: 0.8rem; color: var(--fg-2); line-height: 1.45; margin: 0;">Playing badminton with family/peers and engaging in cooperative gaming (Valorant) during free time.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ ACADEMIC ═══ -->
+    <section class="section topline" id="academic">
+        <div class="sec-head reveal">
+            <span class="eyebrow">02 — Education</span>
+            <h2>Academic background</h2>
+        </div>
+        <div class="grid academic-grid">
+            <div class="cell academic-card reveal">
+                <div class="academic-logo" style="margin-bottom: 16px;">
+                    <img src="./utem_logo.png" alt="UTeM Logo">
+                </div>
+                <div class="mini-banner" style="margin-bottom: 20px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); aspect-ratio: 16/10; position: relative;">
+                    <div class="slideshow-container" style="aspect-ratio: 16/10;">
+                        <img src="./dekan_utem.png" alt="Anugerah Dekan Certificate" class="slide active">
+                        <img src="./dekan_utem2.jpg" alt="Majlis Anugerah Dekan Stage" class="slide">
+                        <img src="./dekan_utem3.jpg" alt="Dean's List Award with Friends" class="slide">
+                    </div>
+                </div>
+                <h4>Degree</h4>
+                <div class="school">Universiti Teknikal Malaysia Melaka (UTeM)</div>
+                <div class="cgpa-badge">CGPA 3.56 / 4.00 · Dean's List Award</div>
+                <p class="period" style="margin-bottom: 16px;">Bachelor of Computer Science (Artificial
+                    Intelligence)<br>2024 — Present</p>
+                <p style="font-size: 0.88rem; color: var(--fg-2); line-height: 1.55;">Honored with the **Dean's List Award** (Anugerah Dekan) for academic excellence. Focusing on core AI foundations, including machine learning models, fuzzy logic, genetic algorithms, and rule-based expert systems, while actively representing the student body on the UTeM MPP.</p>
+            </div>
+            <div class="cell academic-card reveal">
+                <div class="academic-logo" style="margin-bottom: 16px;">
+                    <img src="./puo_logo.png" alt="Politeknik Ungku Omar Logo">
+                </div>
+                <div class="mini-banner" style="margin-bottom: 20px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); aspect-ratio: 16/10; position: relative;">
+                    <div class="slideshow-container" style="aspect-ratio: 16/10;">
+                        <img src="./graduation_puo.png" alt="PUO Graduation Ceremony" class="slide active">
+                        <img src="./graduation_puo2.png" alt="PUO Graduation Day" class="slide">
+                        <img src="./graduation_puo3.png" alt="PUO Graduation with Parents" class="slide">
+                    </div>
+                </div>
+                <h4>Diploma</h4>
+                <div class="school">Politeknik Ungku Omar (PUO)</div>
+                <div class="cgpa-badge">CGPA 3.59 / 4.00</div>
+                <p class="period" style="margin-bottom: 16px;">Diploma in Electronic Computer<br>2021 — 2023</p>
+                <p style="font-size: 0.88rem; color: var(--fg-2); line-height: 1.55;">Prominent technical institute in
+                    Perak. Specialized in computer hardware, electronic circuits, microcontroller system
+                    troubleshooting, and embedded system diagnostics.</p>
+            </div>
+            <div class="cell academic-card reveal">
+                <div class="academic-logo" style="margin-bottom: 16px;">
+                    <img src="./smkcj_logo.png" alt="SMK Cheras Jaya Logo">
+                </div>
+                <div class="mini-banner" style="margin-bottom: 20px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); aspect-ratio: 16/10; position: relative;">
+                    <div class="slideshow-container" style="aspect-ratio: 16/10;">
+                        <img src="./smkcj_entrance.jpg" alt="SMK Cheras Jaya Main Entrance" class="slide active">
+                        <img src="./smkcj_court1.png" alt="SMK Cheras Jaya Courtyard View 1" class="slide">
+                        <img src="./smkcj_court2.png" alt="SMK Cheras Jaya Courtyard View 2" class="slide">
+                    </div>
+                </div>
+                <h4>High School</h4>
+                <div class="school">SMK Cheras Jaya (SMKCJ)</div>
+                <div class="cgpa-badge">SPM 4As</div>
+                <p class="period" style="margin-bottom: 16px;">Computer Science &amp; Accounts Stream<br>Graduated 2020
+                </p>
+                <p style="font-size: 0.88rem; color: var(--fg-2); line-height: 1.55;">Built initial foundations in
+                    programming logic, algorithms, and financial accounting principles, while actively serving as Class
+                    Monitor and Quartermaster.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ LEADERSHIP ═══ -->
+    <section class="section topline" id="leadership">
+        <div class="sec-head reveal">
+            <span class="eyebrow">03 — Experience &amp; Leadership</span>
+            <h2>Leadership &amp; Activities</h2>
+            <p>From student representation on the Student Representative Council (MPP/SRC) to managing daily operations and sensory classes as a barista supervisor.</p>
+        </div>
+        
+        <div class="banner-grid reveal">
+            <div>
+                <div class="banner">
+                    <div class="slideshow-container">
+                        <img src="./MPP_images.png" alt="MPP Event 1" class="slide active">
+                        <img src="./MPP_image2.png" alt="MPP Event 2" class="slide">
+                        <img src="./SRC3.png" alt="SRC Event 3" class="slide">
+                        <img src="./SRC.png" alt="SRC Event 4" class="slide">
+                        <img src="./SRC1.png" alt="SRC Event 5" class="slide">
+                        <img src="./SRC7.jpeg" alt="MPP Team Building Water Activity" class="slide">
+                        <img src="./SRC8.jpeg" alt="MPP PUO Group Photo" class="slide">
+                        <img src="./SRC9.jpeg" alt="MPP PUO Outdoor Activity" class="slide">
+                    </div>
+                </div>
+                <p class="banner-cap" style="font-weight: 600;">Student Representative Council — UTeM &amp; PUO</p>
+                <p style="font-size: 0.85rem; color: var(--fg-3); line-height: 1.5; margin-top: 4px;">Serving the student body on the Majlis Perwakilan Pelajar (MPP/SRC) at both PUO and UTeM, organizing welfare initiatives and coordinating student leadership development.</p>
+            </div>
+            <div>
+                <div class="banner">
+                    <div class="slideshow-container">
+                        <img src="./barista.jpeg" alt="Barista Work" class="slide active">
+                        <img src="./latteart.jpeg" alt="Latte Art Heart" class="slide">
+                        <img src="./latteart2.jpeg" alt="Latte Art Tulip" class="slide">
+                        <img src="./class_sensor.jpeg" alt="Sensory Class with Team" class="slide">
+                    </div>
+                </div>
+                <p class="banner-cap" style="font-weight: 600;">Blend Coffee Roasters &amp; Sensory Education</p>
+                <p style="font-size: 0.85rem; color: var(--fg-3); line-height: 1.5; margin-top: 4px;">Managing daily outlet operations, crafting specialty espresso beverages, and hosting sensory calibration classes.</p>
+            </div>
+        </div>
+
+        <div class="grid leadership-grid" style="margin-top: 48px;">
+            <div class="cell leadership-card reveal" style="grid-column: span 3;">
+                <div class="leadership-logo" style="width: 100px; height: 56px;">
+                    <img src="./mesiniaga_internship.png" alt="Mesiniaga Berhad Logo" style="object-fit: contain;">
+                </div>
+                <h4>IT Support &amp; Systems Intern</h4>
+                <div class="org" style="font-size: 1.15rem; font-weight: 600; margin-bottom: 8px;">Mesiniaga Berhad (Placed at MIDA Kuala Lumpur)</div>
+                <p class="desc" style="color: var(--fg-2); font-size: 0.9rem; line-height: 1.6; margin-bottom: 16px;">
+                    Completed a comprehensive professional IT internship. Handled hardware diagnostics, software provisioning, and preventative maintenance for user endpoints and servers, while ensuring high-quality client relations.
+                </p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px;">
+                    <div>
+                        <h5 style="font-family: var(--mono); font-size: 0.72rem; color: var(--fg-3); text-transform: uppercase; margin-bottom: 8px;">Hardware &amp; System Maintenance</h5>
+                        <ul style="list-style: disc; margin-left: 18px; font-size: 0.85rem; color: var(--fg-2); display: flex; flex-direction: column; gap: 6px;">
+                            <li>Diagnosed hardware faults, formatted storage systems, and cloned disks (1:1 imaging) to migrate user accounts to replacement laptops.</li>
+                            <li>Executed Preventative Maintenance (PM) checkups for client laptops, internal servers, and main Data Center environments.</li>
+                            <li>Installed replacement motherboard modules for faulty servers on-site.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h5 style="font-family: var(--mono); font-size: 0.72rem; color: var(--fg-3); text-transform: uppercase; margin-bottom: 8px;">Network, Facility Systems &amp; Helpdesk</h5>
+                        <ul style="list-style: disc; margin-left: 18px; font-size: 0.85rem; color: var(--fg-2); display: flex; flex-direction: column; gap: 6px;">
+                            <li>Assisted senior network and systems engineers in monitoring and maintaining the building's core network frame infrastructure.</li>
+                            <li>Maintained and repaired SCADA-based digital building state displays indicating utility status across all facilities.</li>
+                            <li>Managed support calls, resolved user ticket reports, and compiled/sorted annual technical reports.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cell leadership-card reveal" style="grid-column: span 3;">
+                <div class="leadership-logo" style="width: 56px; height: 56px;">
+                    <img src="./utem_logo.png" alt="UTeM Logo" style="object-fit: contain;">
+                </div>
+                <h4>Student Co-Curricular &amp; Club Activities</h4>
+                <div class="org" style="font-size: 1.15rem; font-weight: 600; margin-bottom: 8px;">Universiti Teknikal Malaysia Melaka (UTeM)</div>
+                <p class="desc" style="color: var(--fg-2); font-size: 0.9rem; line-height: 1.6; margin-bottom: 16px;">
+                    Actively engaged in faculty integration programs, health advocacy, campus emergency medical response, and collaborative community awareness initiatives during my studies.
+                </p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px;">
+                    <div>
+                        <h5 style="font-family: var(--mono); font-size: 0.72rem; color: var(--fg-3); text-transform: uppercase; margin-bottom: 8px;">Campus Engagement &amp; Sports</h5>
+                        <ul style="list-style: disc; margin-left: 18px; font-size: 0.85rem; color: var(--fg-2); display: flex; flex-direction: column; gap: 6px;">
+                            <li><strong>D-FTMK Program:</strong> Participated in the FTMK Faculty orientation and integration camp program during Semester 1, 2024/2025.</li>
+                            <li><strong>SAF Medic Team:</strong> Served as a first aid responder and medical officer for the Sukan Antara Fakulti (SAF) inter-faculty games.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h5 style="font-family: var(--mono); font-size: 0.72rem; color: var(--fg-3); text-transform: uppercase; margin-bottom: 8px;">Health Advocacy &amp; Community</h5>
+                        <ul style="list-style: disc; margin-left: 18px; font-size: 0.85rem; color: var(--fg-2); display: flex; flex-direction: column; gap: 6px;">
+                            <li><strong>Kelab Rakan Kesihatan (KRK):</strong> Active member coordinating health, physical wellness, and peer support initiatives across campus.</li>
+                            <li><strong>HIV/AIDS-Free Awareness:</strong> Co-organized and volunteered for the public HIV/AIDS-free awareness campaign in the MBMB area, in collaboration with Majlis Bandaraya Melaka Bersejarah (MBMB) and UTeM KRK.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cell leadership-card reveal" style="grid-column: span 1;">
+                <div class="leadership-logo">
+                    <img src="./puo_logo.png" alt="Politeknik Ungku Omar Logo">
+                </div>
+                <h4>Student Representative Council</h4>
+                <div class="org" style="font-size: 1.02rem; font-weight: 600; margin-bottom: 6px;">Majlis Perwakilan Pelajar (MPP/SRC) — PUO</div>
+                <p class="desc" style="color: var(--fg-2); font-size: 0.84rem; line-height: 1.5; margin-bottom: 12px;">Elected student representative managing student body welfare and acting as university management liaison.</p>
+                <ul style="list-style: none; font-size: 0.8rem; color: var(--fg-2); display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--border); padding-top: 12px; margin-top: 12px;">
+                    <li><strong>• Welfare Liaison:</strong> Bridge between university administration and student council.</li>
+                    <li><strong>• Event Directing:</strong> Coordinated orientation programs and student welfare campaigns.</li>
+                </ul>
+            </div>
+            <div class="cell leadership-card reveal" style="grid-column: span 1;">
+                <div class="leadership-logo">
+                    <img src="./smkcj_logo.png" alt="SMK Cheras Jaya Logo">
+                </div>
+                <h4>Student Leadership</h4>
+                <div class="org" style="font-size: 1.02rem; font-weight: 600; margin-bottom: 6px;">Class Monitor &amp; Quartermaster — SMKCJ</div>
+                <p class="desc" style="color: var(--fg-2); font-size: 0.84rem; line-height: 1.5; margin-bottom: 12px;">Elected student leader handling daily classroom operations and school-wide event logistics.</p>
+                <ul style="list-style: none; font-size: 0.8rem; color: var(--fg-2); display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--border); padding-top: 12px; margin-top: 12px;">
+                    <li><strong>• Ops Management:</strong> Managed daily classroom registries and student coordination.</li>
+                    <li><strong>• Sports Logistics:</strong> Handled co-curriculum runs, sports equipment, and event setups.</li>
+                </ul>
+            </div>
+            <div class="cell leadership-card reveal" style="grid-column: span 1;">
+                <div class="leadership-logo">
+                    <img src="./blend.png" alt="Blend Coffee Roasters Logo">
+                </div>
+                <h4>Outlet Supervisor &amp; Barista</h4>
+                <div class="org" style="font-size: 1.02rem; font-weight: 600; margin-bottom: 6px;">Blend Coffee Roasters</div>
+                <p class="desc" style="color: var(--fg-2); font-size: 0.84rem; line-height: 1.5; margin-bottom: 12px;">Supervised daily cafe floor operations, inventory logistics, and sensory training calibrations.</p>
+                <ul style="list-style: none; font-size: 0.8rem; color: var(--fg-2); display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--border); padding-top: 12px; margin-top: 12px;">
+                    <li><strong>• Floor Supervision:</strong> Managed barista shift scheduling and raw bean inventory levels.</li>
+                    <li><strong>• Sensory Training:</strong> Directed coffee calibration classes and client filter brewing sessions.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+ 
+    <!-- ═══ OUTDOORS ═══ -->
+    <section class="section topline" id="outdoors">
+        <div class="sec-head reveal">
+            <span class="eyebrow">04 — Outdoors &amp; Recreation</span>
+            <h2>Nature &amp; Trail Exploration</h2>
+        </div>
+        
+        <div class="about-wrapper reveal">
+            <div class="about-media">
+                <div class="slideshow-container" style="aspect-ratio: 3/4;">
+                    <img src="./hiking1.png" alt="Hiking at River Rapids" class="slide active">
+                    <img src="./hiking2.png" alt="Hiking Trail" class="slide">
+                    <img src="./nature_waterfall.png" alt="Waterfall Cascade" class="slide">
+                    <img src="./nature_rapids.png" alt="River Rapids" class="slide">
+                </div>
+            </div>
+            <div class="about-info" style="display: flex; flex-direction: column; justify-content: center; height: 100%;">
+                <h4 style="font-family: var(--mono); font-size: 0.8rem; color: var(--fg-2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px;">Appreciating Natural Creation</h4>
+                <p style="font-size: 1.05rem; color: var(--fg); line-height: 1.75; margin-bottom: 20px;">Finding balance beyond the screen by exploring tropical forest trails, chasing waterfalls, and appreciating environmental conservation.</p>
+                <p style="font-size: 0.95rem; color: var(--fg-2); line-height: 1.7; margin-bottom: 20px;">I enjoy trekking through outdoor trails, connecting with the natural environment, and reflecting on the beauty of creation. It is my favorite way to recharge, gain new perspectives, and maintain a healthy, active lifestyle away from code.</p>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <span class="card-tag">🥾 Hiking Trails</span>
+                    <span class="card-tag">🌿 Nature Conservation</span>
+                    <span class="card-tag">🌊 Waterfall Trekking</span>
+                    <span class="card-tag">🏕️ Outdoor Adventure</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-name"><span class="tri"></span> Asynawi Azwarrudin</div>
+        <div class="footer-nav">
+            <a href="./index.html">Home</a>
+            <a href="./about.html">About</a>
+            <a href="./projects.html">Portfolio</a>
+            <a href="./contact.html">Contact</a>
+        </div>
+        <p class="footer-copy">© 2026 Asynawi Azwarrudin — All rights reserved</p>
+    </footer>
+
+    <button class="btt" id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+    <script>
+        // Loader
+        window.addEventListener('load', () => {
+            setTimeout(() => document.getElementById('loader').classList.add('done'), 500);
+        });
+
+        // Navbar + back-to-top scroll logic
+        window.addEventListener('scroll', () => {
+            document.getElementById('navbar').classList.toggle('scrolled', scrollY > 40);
+            document.getElementById('btt').classList.toggle('show', scrollY > 500);
+        });
+
+        // Mobile nav close
+        document.querySelectorAll('.nav-links a').forEach(a => {
+            a.addEventListener('click', () => document.getElementById('navLinks').classList.remove('open'));
+        });
+
+        // Reveal on scroll
+        const obs = new IntersectionObserver(entries => {
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('vis'); });
+        }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+        document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+        // Stagger grids
+        document.querySelectorAll('.academic-grid .reveal, .leadership-grid .reveal').forEach((el, i) => {
+            el.style.transitionDelay = `${(i % 6) * 0.08}s`;
+        });
+
+        // Generic Slideshow Logic for all slideshow-containers
+        document.querySelectorAll('.slideshow-container').forEach(container => {
+            const slides = container.querySelectorAll('.slide');
+            if (slides.length > 1) {
+                let current = 0;
+                setInterval(() => {
+                    slides[current].classList.remove('active');
+                    current = (current + 1) % slides.length;
+                    slides[current].classList.add('active');
+                }, 4000);
+            }
+        });
+
+        // Scroll progress indicator
+        window.addEventListener('scroll', () => {
+            const winScroll = document.documentElement.scrollTop || document.body.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            const scrollBar = document.getElementById('scrollProgress');
+            if (scrollBar) {
+                scrollBar.style.width = scrolled + '%';
+            }
+        });
+
+        // Card Spotlight Effect
+        document.querySelectorAll('.cell').forEach(cell => {
+            cell.addEventListener('mousemove', e => {
+                const rect = cell.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                cell.style.setProperty('--mouse-x', `${x}px`);
+                cell.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+    </script>
+</body>
+
+</html>

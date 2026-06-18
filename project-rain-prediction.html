@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rain Prediction — KL Weather Project Details</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+    <style>
+        /* Weather Simulator Specific Styles */
+        .sim-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 32px;
+            background: var(--bg-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 32px;
+            margin-top: 24px;
+            align-items: stretch;
+        }
+        @media (max-width: 768px) {
+            .sim-container {
+                grid-template-columns: 1fr;
+                gap: 24px;
+                padding: 20px;
+            }
+        }
+        
+        /* Sky / Weather visualization box */
+        .weather-box {
+            position: relative;
+            background: linear-gradient(to bottom, #1e75ff 0%, #0a3366 100%);
+            border: 1px solid var(--border-hi);
+            border-radius: 8px;
+            overflow: hidden;
+            height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.8), 0 8px 24px rgba(0,0,0,0.4);
+            transition: background 1s ease;
+        }
+        
+        /* Sun visual */
+        .sun {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #fff7d6 20%, #ffc83b 60%, transparent 100%);
+            box-shadow: 0 0 45px #ffc83b;
+            top: 40px;
+            right: 40px;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        
+        /* Clouds visual */
+        .clouds-container {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.3;
+            transition: opacity 0.5s ease;
+        }
+        .cloud-element {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            filter: blur(14px);
+            transition: all 0.5s ease;
+        }
+        .cloud-1 { width: 140px; height: 70px; top: 20px; left: -20px; }
+        .cloud-2 { width: 160px; height: 80px; top: 40px; right: -35px; }
+        .cloud-3 { width: 200px; height: 90px; top: 10px; left: 50px; }
+        
+        /* Rain animation overlay */
+        .rain-container {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            display: none;
+        }
+        .rain-drop {
+            position: absolute;
+            background: linear-gradient(transparent, rgba(174, 219, 255, 0.75));
+            width: 1.5px;
+            height: 22px;
+            animation: fall 0.8s linear infinite;
+        }
+        @keyframes fall {
+            0% { transform: translateY(-30px); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(285px); opacity: 0; }
+        }
+        
+        /* Sliders and controls */
+        .control-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--mono);
+            font-size: 0.72rem;
+            color: var(--fg-2);
+        }
+        .sim-slider {
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--border);
+            outline: none;
+            cursor: pointer;
+        }
+        .sim-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--white);
+            box-shadow: 0 0 8px rgba(255,255,255,0.3);
+            transition: transform 0.15s;
+        }
+        .sim-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.25);
+        }
+        
+        /* LCD prediction output console */
+        .console-display {
+            background: #050b14;
+            border: 3px solid #142338;
+            border-radius: 6px;
+            padding: 14px 18px;
+            font-family: var(--mono);
+            color: #4da3ff;
+            box-shadow: 0 0 15px rgba(77, 163, 255, 0.15), inset 0 0 12px rgba(0,0,0,0.85);
+            letter-spacing: 0.02em;
+            line-height: 1.5;
+            min-height: 110px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            font-size: 0.78rem;
+            text-align: left;
+        }
+        .console-display::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+        .console-rain {
+            color: #ff5f56;
+            border-color: #4c1a1a;
+            box-shadow: 0 0 15px rgba(255, 95, 86, 0.25), inset 0 0 12px rgba(0,0,0,0.85);
+        }
+        
+        /* LEDs row */
+        .led-row {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .led-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--mono);
+            font-size: 0.68rem;
+            color: var(--fg-3);
+        }
+        .led-bulb {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #151515;
+            border: 2px solid #252525;
+            transition: all 0.2s ease;
+        }
+        .led-blue.active {
+            background: #00a2ff;
+            border-color: #7cd2ff;
+            box-shadow: 0 0 10px #00a2ff;
+        }
+        .led-yellow.active {
+            background: #ffbd2e;
+            border-color: #ffe6a3;
+            box-shadow: 0 0 10px #ffbd2e;
+        }
+        .led-red.active {
+            background: #ff5f56;
+            border-color: #ffabab;
+            box-shadow: 0 0 10px #ff5f56;
+        }
+        
+        /* Audio control panel */
+        .audio-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 16px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="scroll-progress" id="scrollProgress"></div>
+
+    <div class="loader" id="loader">
+        <div class="tri"></div>
+    </div>
+
+    <!-- NAVBAR -->
+    <nav class="navbar" id="navbar">
+        <a href="./index.html" class="nav-brand"><span class="tri"></span> Asynawi Azwarrudin</a>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="./index.html">Home</a></li>
+            <li><a href="./about.html">About</a></li>
+            <li><a href="./projects.html" class="active">Portfolio</a></li>
+            <li><a href="./contact.html">Contact</a></li>
+        </ul>
+        <button class="hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')">
+            <span></span><span></span><span></span>
+        </button>
+    </nav>
+
+    <!-- ═══ PROJECT DETAIL ═══ -->
+    <section class="section" style="padding-top: 120px; max-width: 900px;">
+        <div class="reveal" style="margin-bottom: 32px;">
+            <a href="./projects.html" class="link" style="font-family: var(--mono); font-size: 0.82rem; margin-bottom: 24px; display: inline-flex; align-items: center; gap: 8px;">← Back to Portfolio</a>
+            <span class="eyebrow" style="margin-top: 16px;">Python · Machine Learning</span>
+            <h1 style="font-size: clamp(2rem, 5vw, 3rem); font-weight: 700; letter-spacing: -.03em; line-height: 1.1; margin-bottom: 16px;">Rain Prediction &amp; Temp Forecasting — KL Weather</h1>
+            <div class="card-tags" style="margin-bottom: 24px;">
+                <span class="card-tag">Classification</span>
+                <span class="card-tag">Regression</span>
+                <span class="card-tag">Python (Scikit-Learn)</span>
+                <span class="card-tag">Data Mining</span>
+            </div>
+        </div>
+
+        <!-- Project Hero Image -->
+        <div class="reveal" style="border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 48px; background: var(--bg-2);">
+            <img src="./rain_prediction_thumbnail.jpg" alt="Rain Prediction KL Weather Cover Page" style="width: 100%; display: block; object-fit: cover; aspect-ratio: 16/9; filter: brightness(0.85);">
+        </div>
+
+        <div class="grid qualities-grid reveal" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 48px; text-align: left;">
+            <div class="quality-box" style="padding: 20px; text-align: left;">
+                <div style="font-family: var(--mono); font-size: 0.72rem; color: var(--fg-3); text-transform: uppercase;">Duration</div>
+                <div style="font-weight: 600; font-size: 1rem; margin-top: 4px;">Semester 1, 2025/2026</div>
+            </div>
+            <div class="quality-box" style="padding: 20px; text-align: left;">
+                <div style="font-family: var(--mono); font-size: 0.72rem; color: var(--fg-3); text-transform: uppercase;">Dataset Size</div>
+                <div style="font-weight: 600; font-size: 1rem; margin-top: 4px;">5 Years (1,826 days)</div>
+            </div>
+            <div class="quality-box" style="padding: 20px; text-align: left;">
+                <div style="font-family: var(--mono); font-size: 0.72rem; color: var(--fg-3); text-transform: uppercase;">Focus Area</div>
+                <div style="font-weight: 600; font-size: 1rem; margin-top: 4px;">Smart City Monitoring</div>
+            </div>
+        </div>
+
+        <!-- Content Sections -->
+        <div class="reveal" style="display: flex; flex-direction: column; gap: 40px; margin-bottom: 56px;">
+            
+            <!-- What the Project Does -->
+            <div style="border-bottom: 1px solid var(--border); padding-bottom: 32px;">
+                <h3 style="font-size: 1.4rem; font-weight: 600; letter-spacing: -.02em; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 6px; height: 6px; background: var(--white); transform: rotate(45deg);"></span>
+                    What the Project Does
+                </h3>
+                <p style="color: var(--fg-2); font-size: 1rem; line-height: 1.75; margin-bottom: 16px;">
+                    This project builds a localized weather prediction pipeline for Kuala Lumpur, Malaysia, combining classification and regression models. Traditional meteorological models operate on huge grids and struggle to predict the sudden, intense tropical rainstorms that cause flash floods in specific city neighborhoods. This machine learning system offers a hyper-local, resource-efficient alternative.
+                </p>
+                <ul style="list-style: disc; margin-left: 20px; color: var(--fg-2); font-size: 0.95rem; line-height: 1.7; display: flex; flex-direction: column; gap: 8px;">
+                    <li><strong>Rain Prediction (Classification):</strong> Forecasts whether it will rain today (Yes/No) based on real-time readings such as humidity, cloud cover, and sea-level pressure.</li>
+                    <li><strong>Temperature Forecasting (Regression):</strong> Forecasts tomorrow's maximum temperature using historical weather variables to aid urban heat-stress planning.</li>
+                    <li><strong>Hyper-Local Focus:</strong> Uses daily weather indicators from the Kuala Lumpur area spanning 2019 to 2023.</li>
+                </ul>
+            </div>
+
+            <!-- INTERACTIVE SIMULATION PANEL -->
+            <div style="border-bottom: 1px solid var(--border); padding-bottom: 40px;">
+                <h3 style="font-size: 1.4rem; font-weight: 600; letter-spacing: -.02em; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 6px; height: 6px; background: var(--white); transform: rotate(45deg);"></span>
+                    Interactive ML Weather Simulator
+                </h3>
+                <p style="color: var(--fg-2); font-size: 0.92rem; line-height: 1.6; margin-bottom: 16px;">
+                    Adjust the meteorological sliders to change Temperature, Humidity, and Cloud Cover. Observe how the classification model predicts Rain (Yes/No) and regression forecasts tomorrow's max temperature in real-time, accompanied by visual sky and weather chimes.
+                </p>
+
+                <!-- Simulator Container -->
+                <div class="sim-container" id="simContainer">
+                    
+                    <!-- Left: Weather Visualizer Box -->
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <div class="weather-box" id="weatherBox">
+                            <div class="sun" id="weatherSun"></div>
+                            <div class="clouds-container" id="weatherClouds">
+                                <div class="cloud-element cloud-1" id="cloud1"></div>
+                                <div class="cloud-element cloud-2" id="cloud2"></div>
+                                <div class="cloud-element cloud-3" id="cloud3"></div>
+                            </div>
+                            <div class="rain-container" id="rainContainer"></div>
+                            <div id="weatherStatusText" style="position: absolute; bottom: 16px; font-family: var(--mono); font-size: 0.75rem; color: #fff; background: rgba(0,0,0,0.6); padding: 4px 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15);">Clear Sky</div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-family: var(--mono); font-size: 0.68rem; color: var(--fg-3);">
+                            <span>Sky Visualization</span>
+                            <span id="humidityReadout">Humidity: 50%</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Right: Control Panel & Sliders -->
+                    <div class="control-panel">
+                        <!-- Console LCD Display -->
+                        <div class="console-display" id="consoleDisplay">
+                            <div>[MODEL INPUT] Temp: 30.0&deg;C | Humid: 50%</div>
+                            <div>[SVM PROBABILITY] Rain: 34.2%</div>
+                            <div style="border-top: 1px dashed rgba(77, 163, 255, 0.2); margin: 6px 0; padding-top: 6px; font-weight: 600;">
+                                FORECAST: <span style="color: #4da3ff;" id="forecastText">NO RAIN (DRY)</span>
+                            </div>
+                            <div style="font-size: 0.72rem; color: var(--fg-3);" id="tomorrowTemp">Tomorrow's Max Temp: 31.8&deg;C (Linear Reg)</div>
+                        </div>
+                        
+                        <!-- Sliders Group -->
+                        <div style="display: flex; flex-direction: column; gap: 14px;">
+                            <!-- Slider 1: Temp -->
+                            <div class="slider-group">
+                                <div class="slider-label">
+                                    <span>Temperature</span>
+                                    <span id="valTemp">30&deg;C</span>
+                                </div>
+                                <input type="range" min="15" max="42" value="30" class="sim-slider" id="sliderTemp">
+                            </div>
+                            
+                            <!-- Slider 2: Humidity -->
+                            <div class="slider-group">
+                                <div class="slider-label">
+                                    <span>Relative Humidity</span>
+                                    <span id="valHumidity">50%</span>
+                                </div>
+                                <input type="range" min="20" max="100" value="50" class="sim-slider" id="sliderHumidity">
+                            </div>
+                            
+                            <!-- Slider 3: Cloud Cover -->
+                            <div class="slider-group">
+                                <div class="slider-label">
+                                    <span>Cloud Cover</span>
+                                    <span id="valClouds">30%</span>
+                                </div>
+                                <input type="range" min="0" max="100" value="30" class="sim-slider" id="sliderClouds">
+                            </div>
+                        </div>
+
+                        <!-- LED Indicators Row & Audio Control -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; border-top: 1px solid var(--border); padding-top: 16px;">
+                            <div class="led-row">
+                                <div class="led-indicator">
+                                    <div class="led-bulb led-blue active" id="ledSunny"></div>
+                                    <span>SUNNY</span>
+                                </div>
+                                <div class="led-indicator">
+                                    <div class="led-bulb led-yellow" id="ledCloudy"></div>
+                                    <span>CLOUDY</span>
+                                </div>
+                                <div class="led-indicator">
+                                    <div class="led-bulb led-red" id="ledRainy"></div>
+                                    <span>RAINY</span>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-ghost" style="padding: 6px 12px; font-size: 0.72rem; border-radius: 4px;" id="audioToggle">Enable Audio Alert</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Output Examples & Performance -->
+            <div style="border-bottom: 1px solid var(--border); padding-bottom: 32px;">
+                <h3 style="font-size: 1.4rem; font-weight: 600; letter-spacing: -.02em; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 6px; height: 6px; background: var(--white); transform: rotate(45deg);"></span>
+                    Output Examples &amp; Performance
+                </h3>
+                <p style="color: var(--fg-2); font-size: 1rem; line-height: 1.75; margin-bottom: 24px;">
+                    Multiple models were evaluated using an 80/20 data partition split. The models were tested on both metrics accuracy and error variance, proving high reliability.
+                </p>
+
+                <h4 style="font-family: var(--mono); font-size: 0.82rem; color: var(--fg-2); margin-bottom: 12px; text-transform: uppercase;">1. Classification Performance (Rain Prediction)</h4>
+                <div class="grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 24px; text-align: center;">
+                    <div class="cell" style="padding: 20px;">
+                        <div style="font-size: 1.25rem; font-weight: 700; color: var(--white);">79.78%</div>
+                        <div style="font-family: var(--mono); font-size: 0.68rem; color: var(--fg-3); margin-top: 4px;">Logistic Regression (Best)</div>
+                    </div>
+                    <div class="cell" style="padding: 20px;">
+                        <div style="font-size: 1.25rem; font-weight: 700; color: var(--fg-2);">78.42%</div>
+                        <div style="font-family: var(--mono); font-size: 0.68rem; color: var(--fg-3); margin-top: 4px;">Random Forest</div>
+                    </div>
+                    <div class="cell" style="padding: 20px;">
+                        <div style="font-size: 1.25rem; font-weight: 700; color: var(--fg-2);">73.50%</div>
+                        <div style="font-family: var(--mono); font-size: 0.68rem; color: var(--fg-3); margin-top: 4px;">Decision Tree</div>
+                    </div>
+                </div>
+                <p style="color: var(--fg-2); font-size: 0.92rem; line-height: 1.6; margin-bottom: 24px; border-left: 2px solid var(--border-hi); padding-left: 16px;">
+                    * <strong>Logistic Regression</strong> achieved the best F1-Score of <strong>85.38%</strong> with a high recall of <strong>89.26%</strong>, meaning the system is highly sensitive in catching rainy days to prevent flood risks.
+                </p>
+
+                <h4 style="font-family: var(--mono); font-size: 0.82rem; color: var(--fg-2); margin-bottom: 12px; text-transform: uppercase;">2. Regression Performance (Tomorrow's Max Temperature)</h4>
+                <div class="grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 24px; text-align: center;">
+                    <div class="cell" style="padding: 20px;">
+                        <div style="font-size: 1.25rem; font-weight: 700; color: var(--white);">1.07°C</div>
+                        <div style="font-family: var(--mono); font-size: 0.68rem; color: var(--fg-3); margin-top: 4px;">Linear Regression MAE (Best)</div>
+                    </div>
+                    <div class="cell" style="padding: 20px;">
+                        <div style="font-size: 1.25rem; font-weight: 700; color: var(--fg-2);">1.16°C</div>
+                        <div style="font-family: var(--mono); font-size: 0.68rem; color: var(--fg-3); margin-top: 4px;">K-Nearest Neighbors MAE</div>
+                    </div>
+                    <div class="cell" style="padding: 20px;">
+                        <div style="font-size: 1.25rem; font-weight: 700; color: var(--fg-2);">1.39°C</div>
+                        <div style="font-family: var(--mono); font-size: 0.68rem; color: var(--fg-3); margin-top: 4px;">Support Vector Regression (SVR)</div>
+                    </div>
+                </div>
+
+                <h4 style="font-family: var(--mono); font-size: 0.82rem; color: var(--fg-2); margin-bottom: 12px; text-transform: uppercase;">3. Console Pipeline Output</h4>
+                <pre style="background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px; padding: 18px; font-family: var(--mono); font-size: 0.85rem; color: var(--fg); overflow-x: auto; line-height: 1.5;">
+    KL WEATHER PREDICTION SYSTEM (LIVE)
+    ==================================================
+    ENTER WEATHER CONDITIONS:
+    1. Temperature (°C): 32.0
+    2. Humidity (%): 80.0
+    3. Cloud Cover (%): 50.0
+
+    PREDICTION RESULTS:
+    RAIN: YES (Rainy, Probability: 84.6%)
+    TEMP: 33.8°C (Tomorrow's Max Temperature)</pre>
+            </div>
+
+            <!-- Model Analytics & Data Visualizations -->
+            <div style="border-bottom: 1px solid var(--border); padding-bottom: 32px;">
+                <h3 style="font-size: 1.4rem; font-weight: 600; letter-spacing: -.02em; margin-bottom: 24px; display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 6px; height: 6px; background: var(--white); transform: rotate(45deg);"></span>
+                    Model Analytics &amp; Data Visualizations
+                </h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px;">
+                    <!-- Card 1: Heatmap -->
+                    <div style="border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--bg-2); display: flex; flex-direction: column;">
+                        <div style="background: #ffffff; padding: 10px; flex-grow: 1; display: flex; align-items: center; justify-content: center; min-height: 220px;">
+                            <img src="./project_assets/rain_page_10.png" alt="Correlation Heatmap of Weather Features" style="width: 100%; height: auto; max-height: 200px; object-fit: contain;">
+                        </div>
+                        <div style="padding: 16px; border-top: 1px solid var(--border); background: var(--bg-2);">
+                            <h5 style="font-size: 0.95rem; font-weight: 600; margin-bottom: 8px;">Correlation Heatmap of Weather Features</h5>
+                            <p style="font-size: 0.82rem; color: var(--fg-2); line-height: 1.5; margin: 0;">Analyzes the linear relationships between meteorological variables. Highlights strong negative correlation between temperature and relative humidity, and positive relationships with sea-level pressure indicators.</p>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Pie Chart -->
+                    <div style="border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--bg-2); display: flex; flex-direction: column;">
+                        <div style="background: #ffffff; padding: 10px; flex-grow: 1; display: flex; align-items: center; justify-content: center; min-height: 220px;">
+                            <img src="./project_assets/rain_page_9.png" alt="Rainy vs Dry Day Distribution" style="width: 100%; height: auto; max-height: 200px; object-fit: contain;">
+                        </div>
+                        <div style="padding: 16px; border-top: 1px solid var(--border); background: var(--bg-2);">
+                            <h5 style="font-size: 0.95rem; font-weight: 600; margin-bottom: 8px;">Rainy vs. Dry Day Distribution (Kuala Lumpur)</h5>
+                            <p style="font-size: 0.82rem; color: var(--fg-2); line-height: 1.5; margin: 0;">Pie chart illustrating the class distribution in the dataset: 66.1% rainy days vs. 33.9% dry days. This class distribution guided the selection of F1-Score as a key evaluation metric rather than simple accuracy alone.</p>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Classification Error Comparison -->
+                    <div style="border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--bg-2); display: flex; flex-direction: column;">
+                        <div style="background: #ffffff; padding: 10px; flex-grow: 1; display: flex; align-items: center; justify-content: center; min-height: 220px;">
+                            <img src="./project_assets/rain_page_15.png" alt="Classification Performance Comparison" style="width: 100%; height: auto; max-height: 200px; object-fit: contain;">
+                        </div>
+                        <div style="padding: 16px; border-top: 1px solid var(--border); background: var(--bg-2);">
+                            <h5 style="font-size: 0.95rem; font-weight: 600; margin-bottom: 8px;">Classification Performance Chart</h5>
+                            <p style="font-size: 0.82rem; color: var(--fg-2); line-height: 1.5; margin: 0;;">Bar chart comparing Logistic Regression, Random Forest, and Decision Tree accuracy. Logistic Regression leads with 79.78% accuracy and 85.38% F1-score due to its robust boundary definition on normalized numerical weather features.</p>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: Regression Error Comparison -->
+                    <div style="border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--bg-2); display: flex; flex-direction: column;">
+                        <div style="background: #ffffff; padding: 10px; flex-grow: 1; display: flex; align-items: center; justify-content: center; min-height: 220px;">
+                            <img src="./project_assets/rain_page_16.png" alt="Regression Error Chart" style="width: 100%; height: auto; max-height: 200px; object-fit: contain;">
+                        </div>
+                        <div style="padding: 16px; border-top: 1px solid var(--border); background: var(--bg-2);">
+                            <h5 style="font-size: 0.95rem; font-weight: 600; margin-bottom: 8px;">Regression Error Analysis (Max Temperature)</h5>
+                            <p style="font-size: 0.82rem; color: var(--fg-2); line-height: 1.5; margin: 0;">Bar chart comparing Mean Absolute Error (MAE) and RMSE. Linear Regression achieved the lowest MAE of 1.07°C, indicating highly reliable daily maximum temperature forecasting for urban heat island tracking.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- What I Learned -->
+            <div>
+                <h3 style="font-size: 1.4rem; font-weight: 600; letter-spacing: -.02em; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 6px; height: 6px; background: var(--white); transform: rotate(45deg);"></span>
+                    What I Learned
+                </h3>
+                <ul style="list-style: decimal; margin-left: 20px; color: var(--fg-2); font-size: 0.95rem; line-height: 1.7; display: flex; flex-direction: column; gap: 12px;">
+                    <li><strong>Data Pre-Processing:</strong> Gained experience cleaning raw meteorological files, dealing with missing values, and scaling features using <code>StandardScaler</code> for model inputs.</li>
+                    <li><strong>Feature Engineering:</strong> Learned how to structure temporal predictive targets (such as shifts for predicting tomorrow's variables) from historical rows.</li>
+                    <li><strong>Exploratory Analysis (EDA):</strong> Developed skills using Python visualization libraries to analyze correlations (e.g. strong negative correlation between temperature and humidity) and class distributions.</li>
+                    <li><strong>Model Comparison &amp; Selection:</strong> Learned to compare different classification and regression models and evaluate them based on confusion matrices, error residuals, MAE, and RMSE.</li>
+                </ul>
+            </div>
+
+        </div>
+
+        <div style="border-top: 1px solid var(--border); padding-top: 32px; text-align: center;" class="reveal">
+            <a href="./projects.html" class="btn btn-ghost">← Back to Portfolio</a>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-name"><span class="tri"></span> Asynawi Azwarrudin</div>
+        <div class="footer-nav">
+            <a href="./index.html">Home</a>
+            <a href="./about.html">About</a>
+            <a href="./projects.html">Portfolio</a>
+            <a href="./contact.html">Contact</a>
+        </div>
+        <p class="footer-copy">© 2026 Asynawi Azwarrudin — All rights reserved</p>
+    </footer>
+
+    <button class="btt" id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+    <script>
+        // Loader
+        window.addEventListener('load', () => {
+            setTimeout(() => document.getElementById('loader').classList.add('done'), 500);
+        });
+
+        // Navbar scroll logic
+        window.addEventListener('scroll', () => {
+            document.getElementById('navbar').classList.toggle('scrolled', scrollY > 40);
+            document.getElementById('btt').classList.toggle('show', scrollY > 500);
+        });
+
+        // Reveal on scroll
+        const obs = new IntersectionObserver(entries => {
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('vis'); });
+        }, { threshold: 0.08 });
+        document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+        // Scroll progress indicator
+        window.addEventListener('scroll', () => {
+            const winScroll = document.documentElement.scrollTop || document.body.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            const scrollBar = document.getElementById('scrollProgress');
+            if (scrollBar) {
+                scrollBar.style.width = scrolled + '%';
+            }
+        });
+
+        // ==========================================
+        // WEATHER SIMULATOR INTERACTIVE LOGIC
+        // ==========================================
+        const sliderTemp = document.getElementById('sliderTemp');
+        const sliderHumidity = document.getElementById('sliderHumidity');
+        const sliderClouds = document.getElementById('sliderClouds');
+
+        const valTemp = document.getElementById('valTemp');
+        const valHumidity = document.getElementById('valHumidity');
+        const valClouds = document.getElementById('valClouds');
+
+        const weatherBox = document.getElementById('weatherBox');
+        const weatherSun = document.getElementById('weatherSun');
+        const weatherClouds = document.getElementById('weatherClouds');
+        const rainContainer = document.getElementById('rainContainer');
+        const weatherStatusText = document.getElementById('weatherStatusText');
+        const humidityReadout = document.getElementById('humidityReadout');
+
+        const consoleDisplay = document.getElementById('consoleDisplay');
+        const forecastText = document.getElementById('forecastText');
+        const tomorrowTemp = document.getElementById('tomorrowTemp');
+
+        const ledSunny = document.getElementById('ledSunny');
+        const ledCloudy = document.getElementById('ledCloudy');
+        const ledRainy = document.getElementById('ledRainy');
+
+        const audioToggle = document.getElementById('audioToggle');
+
+        let audioContext = null;
+        let isAudioEnabled = false;
+
+        // Generate rain drops once
+        function generateRainDrops() {
+            rainContainer.innerHTML = '';
+            for (let i = 0; i < 60; i++) {
+                const drop = document.createElement('div');
+                drop.className = 'rain-drop';
+                drop.style.left = (Math.random() * 100) + '%';
+                drop.style.animationDelay = (Math.random() * 0.8) + 's';
+                drop.style.animationDuration = (0.5 + Math.random() * 0.5) + 's';
+                drop.style.opacity = 0.3 + Math.random() * 0.7;
+                rainContainer.appendChild(drop);
+            }
+        }
+        generateRainDrops();
+
+        // Audio toggle
+        audioToggle.addEventListener('click', () => {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            isAudioEnabled = !isAudioEnabled;
+            if (isAudioEnabled) {
+                audioToggle.textContent = 'Mute Audio';
+                audioToggle.classList.remove('btn-ghost');
+                audioToggle.classList.add('btn-primary');
+            } else {
+                audioToggle.textContent = 'Enable Audio Alert';
+                audioToggle.classList.remove('btn-primary');
+                audioToggle.classList.add('btn-ghost');
+            }
+        });
+
+        function playRainChime() {
+            if (!audioContext || !isAudioEnabled) return;
+            try {
+                if (audioContext.state === 'suspended') audioContext.resume();
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = 440;
+                osc.frequency.linearRampToValueAtTime(220, audioContext.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.15, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.4);
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.start();
+                osc.stop(audioContext.currentTime + 0.4);
+            } catch (e) { /* silent */ }
+        }
+
+        let lastRainState = false;
+
+        function updateSimulation() {
+            const temp = parseFloat(sliderTemp.value);
+            const humidity = parseFloat(sliderHumidity.value);
+            const clouds = parseFloat(sliderClouds.value);
+
+            // Update labels
+            valTemp.textContent = temp + '°C';
+            valHumidity.textContent = humidity + '%';
+            valClouds.textContent = clouds + '%';
+            humidityReadout.textContent = 'Humidity: ' + humidity + '%';
+
+            // ── Simplified ML Prediction Logic ──
+            // Classification: rain probability based on weighted features
+            // Trained model approximation: humidity is strongest predictor, then clouds, inverse of temp
+            const humidityScore = (humidity - 50) / 50;       // -1 to 1
+            const cloudScore = (clouds - 40) / 60;            // negative if clear
+            const tempScore = (temp - 30) / 12;               // higher temp = slightly less rain in KL (inverse humidity)
+            
+            let rainProbRaw = 0.34 + (humidityScore * 0.35) + (cloudScore * 0.22) - (tempScore * 0.08);
+            rainProbRaw = Math.max(0.02, Math.min(0.98, rainProbRaw));
+            const rainProb = (rainProbRaw * 100).toFixed(1);
+            const isRaining = rainProbRaw >= 0.50;
+
+            // Regression: tomorrow's max temp (linear regression approximation)
+            const tomorrowMax = (0.65 * temp + 0.1 * (100 - humidity) / 10 + 0.05 * (100 - clouds) / 10 + 10.5).toFixed(1);
+
+            // ── Update Console Display ──
+            consoleDisplay.innerHTML = `
+                <div>[MODEL INPUT] Temp: ${temp.toFixed(1)}&deg;C | Humid: ${humidity}% | Cloud: ${clouds}%</div>
+                <div>[SVM PROBABILITY] Rain: ${rainProb}%</div>
+                <div style="border-top: 1px dashed rgba(77,163,255,0.2); margin: 6px 0; padding-top: 6px; font-weight: 600;">
+                    FORECAST: <span style="color: ${isRaining ? '#ff5f56' : '#3ad17b'};" id="forecastText">${isRaining ? '☔ RAIN DETECTED' : '☀ NO RAIN (DRY)'}</span>
+                </div>
+                <div style="font-size: 0.72rem; color: var(--fg-3);">Tomorrow's Max Temp: ${tomorrowMax}&deg;C (Linear Reg)</div>
+            `;
+
+            if (isRaining) {
+                consoleDisplay.classList.add('console-rain');
+            } else {
+                consoleDisplay.classList.remove('console-rain');
+            }
+
+            // ── Update Sky Visuals ──
+            // Sky gradient: blue → grey → dark based on clouds & humidity
+            const cloudFactor = clouds / 100;
+            const darkFactor = Math.min(1, (humidity / 100) * 0.4 + cloudFactor * 0.6);
+            
+            const skyR = Math.round(30 * (1 - darkFactor) + 18 * darkFactor);
+            const skyG = Math.round(117 * (1 - darkFactor) + 28 * darkFactor);
+            const skyB = Math.round(255 * (1 - darkFactor) + 48 * darkFactor);
+            
+            const skyR2 = Math.round(10 * (1 - darkFactor) + 8 * darkFactor);
+            const skyG2 = Math.round(51 * (1 - darkFactor) + 14 * darkFactor);
+            const skyB2 = Math.round(102 * (1 - darkFactor) + 24 * darkFactor);
+
+            weatherBox.style.background = `linear-gradient(to bottom, rgb(${skyR},${skyG},${skyB}) 0%, rgb(${skyR2},${skyG2},${skyB2}) 100%)`;
+
+            // Sun: fade out as clouds increase
+            weatherSun.style.opacity = Math.max(0, 1 - cloudFactor * 1.4);
+            weatherSun.style.transform = `scale(${1 - cloudFactor * 0.3})`;
+
+            // Clouds: opacity based on cloud cover
+            weatherClouds.style.opacity = 0.1 + cloudFactor * 0.9;
+            const c1 = document.getElementById('cloud1');
+            const c2 = document.getElementById('cloud2');
+            const c3 = document.getElementById('cloud3');
+            c1.style.background = `rgba(255,255,255,${0.05 + cloudFactor * 0.25})`;
+            c2.style.background = `rgba(255,255,255,${0.05 + cloudFactor * 0.30})`;
+            c3.style.background = `rgba(255,255,255,${0.05 + cloudFactor * 0.35})`;
+
+            // Rain drops
+            if (isRaining) {
+                rainContainer.style.display = 'block';
+                // Intensity: more drops visible at higher probability
+                const intensity = rainProbRaw;
+                const drops = rainContainer.querySelectorAll('.rain-drop');
+                drops.forEach((drop, i) => {
+                    drop.style.display = (i / drops.length) < intensity ? 'block' : 'none';
+                });
+            } else {
+                rainContainer.style.display = 'none';
+            }
+
+            // Status text
+            if (isRaining) {
+                weatherStatusText.textContent = rainProbRaw > 0.75 ? '⛈ Heavy Rain' : '🌧 Light Rain';
+                weatherStatusText.style.background = 'rgba(255, 60, 60, 0.6)';
+            } else if (clouds > 60) {
+                weatherStatusText.textContent = '☁ Overcast';
+                weatherStatusText.style.background = 'rgba(0,0,0,0.6)';
+            } else if (clouds > 30) {
+                weatherStatusText.textContent = '⛅ Partly Cloudy';
+                weatherStatusText.style.background = 'rgba(0,0,0,0.6)';
+            } else {
+                weatherStatusText.textContent = '☀ Clear Sky';
+                weatherStatusText.style.background = 'rgba(0,0,0,0.6)';
+            }
+
+            // ── Update LED Indicators ──
+            ledSunny.classList.toggle('active', !isRaining && clouds <= 50);
+            ledCloudy.classList.toggle('active', !isRaining && clouds > 50);
+            ledRainy.classList.toggle('active', isRaining);
+
+            // Audio chime on rain state transition
+            if (isRaining && !lastRainState) {
+                playRainChime();
+            }
+            lastRainState = isRaining;
+        }
+
+        // Bind sliders
+        sliderTemp.addEventListener('input', updateSimulation);
+        sliderHumidity.addEventListener('input', updateSimulation);
+        sliderClouds.addEventListener('input', updateSimulation);
+
+        // Initial update
+        updateSimulation();
+    </script>
+</body>
+
+</html>

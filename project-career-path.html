@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Career Path Recommendation — Project Details</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+    <style>
+        /* ═══════════════════════════════════════════════
+           CLIPS Inference Engine Simulator
+        ═══════════════════════════════════════════════ */
+
+        .engine-panel {
+            background: var(--bg-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 0;
+            margin-top: 24px;
+            overflow: hidden;
+        }
+
+        /* ── Toolbar top bar ── */
+        .engine-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.02);
+            border-bottom: 1px solid var(--border);
+        }
+        .engine-toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--mono);
+            font-size: 0.72rem;
+            color: var(--fg-3);
+        }
+        .engine-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #34d399;
+            box-shadow: 0 0 6px rgba(52,211,153,0.5);
+        }
+        .engine-dot.idle { background: #525252; box-shadow: none; }
+        .engine-dot.processing { background: #facc15; animation: dotPulse 0.6s infinite alternate; box-shadow: 0 0 8px rgba(250,204,21,0.6); }
+        @keyframes dotPulse {
+            0%   { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .engine-toolbar-right {
+            font-family: var(--mono);
+            font-size: 0.68rem;
+            color: var(--fg-3);
+        }
+
+        /* ── Body: 2-column layout ── */
+        .engine-body {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            min-height: 420px;
+        }
+        @media (max-width: 800px) {
+            .engine-body {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ── LEFT: Question / Result Area ── */
+        .engine-main {
+            padding: 28px 32px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Step progress bar */
+        .step-progress {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 28px;
+        }
+        .step-bar {
+            flex: 1;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            transition: background 0.4s;
+        }
+        .step-bar.done { background: #a78bfa; }
+        .step-bar.active { background: #c4b5fd; animation: barPulse 1.2s infinite; }
+        @keyframes barPulse {
+            0%, 100% { opacity: 0.6; }
+            50%      { opacity: 1; }
+        }
+
+        /* Question display */
+        .q-number {
+            font-family: var(--mono);
+            font-size: 0.68rem;
+            color: #a78bfa;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+        }
+        .q-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--fg);
+            line-height: 1.45;
+            margin-bottom: 20px;
+            min-height: 52px;
+        }
+
+        /* Option buttons */
+        .q-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .q-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.88rem;
+            color: var(--fg-2);
+            line-height: 1.4;
+        }
+        .q-option:hover {
+            border-color: rgba(167,139,250,0.4);
+            background: rgba(167,139,250,0.06);
+            color: var(--fg);
+        }
+        .q-option.selected {
+            border-color: #a78bfa;
+            background: rgba(167,139,250,0.1);
+            color: var(--white);
+        }
+        .q-option-marker {
+            width: 28px; height: 28px;
+            border-radius: 6px;
+            border: 1.5px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--mono);
+            font-size: 0.7rem;
+            color: var(--fg-3);
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+        .q-option.selected .q-option-marker {
+            background: #a78bfa;
+            border-color: #a78bfa;
+            color: #fff;
+        }
+
+        /* Processing screen */
+        .processing-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px 20px;
+            flex: 1;
+        }
+        .processing-screen.show { display: flex; }
+
+        .inference-spinner {
+            width: 64px; height: 64px;
+            border: 3px solid var(--border);
+            border-top-color: #a78bfa;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .processing-label {
+            font-family: var(--mono);
+            font-size: 0.82rem;
+            color: #a78bfa;
+            margin-bottom: 6px;
+        }
+        .processing-sub {
+            font-size: 0.72rem;
+            color: var(--fg-3);
+            font-family: var(--mono);
+        }
+
+        /* Result screen */
+        .result-screen {
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+            flex: 1;
+        }
+        .result-screen.show { display: flex; }
+
+        .archetype-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(167,139,250,0.1);
+            border: 1px solid rgba(167,139,250,0.3);
+            border-radius: 8px;
+            padding: 10px 16px;
+            align-self: flex-start;
+        }
+        .archetype-icon {
+            font-size: 1.2rem;
+        }
+        .archetype-text {
+            font-family: var(--mono);
+            font-size: 0.78rem;
+            color: #c4b5fd;
+        }
+        .archetype-name {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #a78bfa;
+        }
+
+        /* Career cards */
+        .career-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .career-card {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.015);
+            opacity: 0;
+            transform: translateY(12px);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .career-card.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .career-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .career-card-rank {
+            font-family: var(--mono);
+            font-size: 0.62rem;
+            color: var(--fg-3);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .career-card-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--fg);
+        }
+        .career-card-score {
+            font-family: var(--mono);
+            font-weight: 700;
+            font-size: 0.88rem;
+        }
+        .career-card-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        .career-card-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            width: 0%;
+            transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .career-card:nth-child(1) .career-card-bar-fill { background: #a78bfa; }
+        .career-card:nth-child(2) .career-card-bar-fill { background: #818cf8; }
+        .career-card:nth-child(3) .career-card-bar-fill { background: #6366f1; }
+
+        .career-card-meta {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--mono);
+            font-size: 0.66rem;
+            color: var(--fg-3);
+        }
+
+        .result-restart {
+            margin-top: 8px;
+            align-self: flex-start;
+        }
+
+        /* ── RIGHT: CLIPS Terminal ── */
+        .clips-terminal {
+            border-left: 1px solid var(--border);
+            background: #0a0e18;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            font-family: var(--mono);
+            font-size: 0.72rem;
+            line-height: 1.55;
+            max-height: 460px;
+        }
+        @media (max-width: 800px) {
+            .clips-terminal {
+                border-left: none;
+                border-top: 1px solid var(--border);
+                max-height: 280px;
+            }
+        }
+        .clips-terminal-header {
+            padding: 8px 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            color: var(--fg-3);
+            font-size: 0.66rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .clips-terminal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .clips-terminal-body::-webkit-scrollbar {
+            width: 4px;
+        }
+        .clips-terminal-body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .clips-terminal-body::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.08);
+            border-radius: 2px;
+        }
+        .t-line {
+            color: #4a5568;
+        }
+        .t-line.rule    { color: #a78bfa; }
+        .t-line.fact    { color: #34d399; }
+        .t-line.assert  { color: #60a5fa; }
+        .t-line.result  { color: #facc15; font-weight: 600; }
+        .t-line.error   { color: #f87171; }
+        .t-cursor {
+            display: inline-block;
+            width: 7px;
+            height: 13px;
+            background: #a78bfa;
+            animation: blink 1s step-end infinite;
+            vertical-align: text-bottom;
+            margin-left: 2px;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50%      { opacity: 0; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="scroll-progress" id="scrollProgress"></div>
+
+    <div class="loader" id="loader">
+        <div class="tri"></div>
+    </div>
+
+    <!-- NAVBAR -->
+    <nav class="navbar" id="navbar">
+        <a href="./index.html" class="nav-brand"><span class="tri"></span> Asynawi Azwarrudin</a>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="./index.html">Home</a></li>
+            <li><a href="./about.html">About</a></li>
+            <li><a href="./projects.html" class="active">Portfolio</a></li>
+            <li><a href="./contact.html">Contact</a></li>
+        </ul>
+        <button class="hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')">
+            <span></span><span></span><span></span>
+        </button>
+    </nav>
+
+    <!-- ═══ PROJECT DETAIL ═══ -->
+    <section class="section" style="padding-top: 120px; max-width: 900px;">
+        <div class="reveal" style="margin-bottom: 32px;">
+            <a href="./projects.html" class="link" style="font-family: var(--mono); font-size: 0.82rem; margin-bottom: 24px; display: inline-flex; align-items: center; gap: 8px;">← Back to Portfolio</a>
+            <span class="eyebrow" style="margin-top: 16px;">CLIPS · Knowledge Based System</span>
+            <h1 style="font-size: clamp(2rem, 5vw, 3rem); font-weight: 700; letter-spacing: -.03em; line-height: 1.1; margin-bottom: 16px;">Intelligent Career Path Recommendation System</h1>
+            <div class="card-tags" style="margin-bottom: 24px;">
+                <span class="card-tag">Rule-Based Expert System</span>
+                <span class="card-tag">CLIPS Programming</span>
+                <span class="card-tag">Forward Chaining</span>
+                <span class="card-tag">Salary &amp; Roadmap Insights</span>
+            </div>
+        </div>
+
+        <!-- Project Hero Image -->
+        <div class="reveal" style="border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 48px; background: var(--bg-2);">
+            <img src="./career_navigator_thumbnail.png" alt="Career Path Recommendation Cover Page" style="width: 100%; display: block; object-fit: cover; aspect-ratio: 16/9; filter: brightness(0.85);">
+        </div>
+
+        <div class="grid qualities-grid reveal" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 48px; text-align: left;">
+            <div class="quality-box" style="padding: 20px; text-align: left;">
+                <div style="font-family: var(--mono); font-size: 0.72rem; color: var(--fg-3); text-transform: uppercase;">Duration</div>
+                <div style="font-weight: 600; font-size: 1rem; margin-top: 4px;">Semester 1, 2025/2026</div>
+            </div>
+            <div class="quality-box" style="padding: 20px; text-align: left;">
+                <div style="font-family: var(--mono); font-size: 0.72rem; color: var(--fg-3); text-transform: uppercase;">Language</div>
+                <div style="font-weight: 600; font-size: 1rem; margin-top: 4px;">CLIPS (Expert System Tool)</div>
+            </div>
+            <div class="quality-box" style="padding: 20px; text-align: left;">
+                <div style="font-family: var(--mono); font-size: 0.72rem; color: var(--fg-3); text-transform: uppercase;">Inference Mode</div>
+                <div style="font-weight: 600; font-size: 1rem; margin-top: 4px;">Forward Chaining Logic</div>
+            </div>
+        </div>
+
+        <!-- Content Sections -->
+        <div class="reveal" style="display: flex; flex-direction: column; gap: 40px; margin-bottom: 56px;">
+
+            <!-- What the Project Does -->
+            <div style="border-bottom: 1px solid var(--border); padding-bottom: 32px;">
+                <h3 style="font-size: 1.4rem; font-weight: 600; letter-spacing: -.02em; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 6px; height: 6px; background: var(--white); transform: rotate(45deg);"></span>
+                    What the Project Does
+                </h3>
+                <p style="color: var(--fg-2); font-size: 1rem; line-height: 1.75; margin-bottom: 16px;">
+                    The Intelligent Career Path Navigator is an AI-powered Knowledge-Based Expert System (KBS) built on rule-based reasoning. Navigating the modern Information Technology (IT) industry is challenging due to the rapid growth of specialized roles (such as DevOps, AI, Data Science, and Cybersecurity). This system correlates a user's technical competence, soft skills, and personality traits to suggest a personalized IT career path, growth outlook, and learning roadmap.
+                </p>
+                <ul style="list-style: disc; margin-left: 20px; color: var(--fg-2); font-size: 0.95rem; line-height: 1.7; display: flex; flex-direction: column; gap: 8px;">
+                    <li><strong>Archetype Classification:</strong> Analyzes preferred problem-solving styles to categorize the user into 1 of 6 personality archetypes (e.g. Collaborator, Architect, Innovator, Strategist).</li>
+                    <li><strong>Career Match Scores:</strong> Implements pattern matching to evaluate 16 complex questions and outputs the top 3 best-fit IT careers with confidence levels (70% - 95%) and growth rates.</li>
+                    <li><strong>3-Phase Learning Roadmap:</strong> Automatically generates custom project ideas, courses, and certifications (such as CompTIA, AWS, and Google Career) timeline (3-18 months) for each career.</li>
+                    <li><strong>Salary Insights:</strong> Integrates Malaysia salary scales gathered from JobStreet and MDEC digital economy datasets.</li>
+                </ul>
+            </div>
+
+            <!-- Output Examples & Performance -->
+            <div style="border-bottom: 1px solid var(--border); padding-bottom: 32px;">
+                <h3 style="font-size: 1.4rem; font-weight: 600; letter-spacing: -.02em; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 6px; height: 6px; background: var(--white); transform: rotate(45deg);"></span>
+                    Output Examples &amp; Performance
+                </h3>
+                <p style="color: var(--fg-2); font-size: 1rem; line-height: 1.75; margin-bottom: 24px;">
+                    Below is an example of the rule-based output generated by the CLIPS inference engine for user "Asynawi" based on his answers:
+                </p>
+
+                <div class="grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 24px; text-align: center;">
+                    <div class="cell" style="padding: 20px;">
+                        <div style="font-size: 1.25rem; font-weight: 700; color: var(--white);">AI / ML Engineer</div>
+                        <div style="font-family: var(--mono); font-size: 0.68rem; color: var(--fg-3); margin-top: 4px;">Top Match (95%) <br>RM 5,000 - RM 35,000+</div>
+                    </div>
+                    <div class="cell" style="padding: 20px;">
+                        <div style="font-size: 1.25rem; font-weight: 700; color: var(--fg-2);">Data Scientist</div>
+                        <div style="font-family: var(--mono); font-size: 0.68rem; color: var(--fg-3); margin-top: 4px;">Second Match (92%) <br>RM 4,000 - RM 25,000+</div>
+                    </div>
+                    <div class="cell" style="padding: 20px;">
+                        <div style="font-size: 1.25rem; font-weight: 700; color: var(--fg-2);">Full-Stack Developer</div>
+                        <div style="font-family: var(--mono); font-size: 0.68rem; color: var(--fg-3); margin-top: 4px;">Third Match (90%) <br>RM 3,500 - RM 20,000+</div>
+                    </div>
+                </div>
+
+                <h4 style="font-family: var(--mono); font-size: 0.82rem; color: var(--fg-2); margin-bottom: 12px; text-transform: uppercase;">System Inference Results Log</h4>
+                <pre style="background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px; padding: 18px; font-family: var(--mono); font-size: 0.85rem; color: var(--fg); overflow-x: auto; line-height: 1.5;">
+>>> PERSONALITY ARCHETYPE IDENTIFIED:
+    The Collaborator (Excellent soft skills, team communication, and logical structure)
+
+>>> RECOMMENDED CAREERS:
+    1. AI/Machine Learning Engineer
+       - Match Score: 95%
+       - Industry Growth: 25% (Very High)
+       - Est. Salary: RM 5,000 - RM 35,000+ per month
+       - 3-Phase learning roadmap (Months 1-12) generated successfully.
+
+    2. Data Scientist
+       - Match Score: 92%
+       - Est. Salary: RM 4,000 - RM 25,000+</pre>
+            </div>
+
+            <!-- ═══ INTERACTIVE CLIPS ENGINE SIMULATOR ═══ -->
+            <div style="border-bottom: 1px solid var(--border); padding-bottom: 40px;">
+                <h3 style="font-size: 1.4rem; font-weight: 600; letter-spacing: -.02em; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 6px; height: 6px; background: var(--white); transform: rotate(45deg);"></span>
+                    Interactive CLIPS Inference Engine
+                </h3>
+                <p style="color: var(--fg-2); font-size: 0.92rem; line-height: 1.6; margin-bottom: 0;">
+                    Answer 5 profile questions below. Each answer asserts facts into the working memory and triggers rule-based forward chaining — producing your personality archetype and top 3 career matches in real time.
+                </p>
+
+                <div class="engine-panel">
+                    <!-- Toolbar -->
+                    <div class="engine-toolbar">
+                        <div class="engine-toolbar-left">
+                            <div class="engine-dot idle" id="engineDot"></div>
+                            <span id="engineStatus">CLIPS 6.4 — Idle</span>
+                        </div>
+                        <div class="engine-toolbar-right" id="engineStep">0 / 5 assertions</div>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="engine-body">
+                        <!-- LEFT: Question / Results -->
+                        <div class="engine-main" id="engineMain">
+
+                            <!-- Step progress -->
+                            <div class="step-progress" id="stepProgress">
+                                <div class="step-bar" id="bar0"></div>
+                                <div class="step-bar" id="bar1"></div>
+                                <div class="step-bar" id="bar2"></div>
+                                <div class="step-bar" id="bar3"></div>
+                                <div class="step-bar" id="bar4"></div>
+                            </div>
+
+                            <!-- Question View -->
+                            <div id="questionView">
+                                <div class="q-number" id="qNumber">Question 1 of 5</div>
+                                <div class="q-text" id="qText"></div>
+                                <div class="q-options" id="qOptions"></div>
+                            </div>
+
+                            <!-- Processing View -->
+                            <div class="processing-screen" id="processingView">
+                                <div class="inference-spinner"></div>
+                                <div class="processing-label">Running Inference Engine...</div>
+                                <div class="processing-sub" id="processingDetail">Evaluating 47 rules across knowledge base</div>
+                            </div>
+
+                            <!-- Result View -->
+                            <div class="result-screen" id="resultView">
+                                <div class="archetype-badge" id="archetypeBadge">
+                                    <span class="archetype-icon">🧠</span>
+                                    <div>
+                                        <div class="archetype-text">Archetype Identified</div>
+                                        <div class="archetype-name" id="archetypeName">The Architect</div>
+                                    </div>
+                                </div>
+
+                                <div class="career-cards" id="careerCards">
+                                    <!-- Cards injected by JS -->
+                                </div>
+
+                                <button class="btn btn-ghost result-restart" id="restartBtn" style="padding: 8px 16px; font-size: 0.78rem;">↻ Run Again</button>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT: CLIPS Terminal -->
+                        <div class="clips-terminal">
+                            <div class="clips-terminal-header">
+                                <span>inference log</span>
+                                <span id="ruleCount">0 rules fired</span>
+                            </div>
+                            <div class="clips-terminal-body" id="termBody">
+                                <div class="t-line">CLIPS&gt; (load "career_navigator.clp")</div>
+                                <div class="t-line fact">Loaded 47 rules, 6 archetypes, 12 careers.</div>
+                                <div class="t-line">CLIPS&gt; (reset)</div>
+                                <div class="t-line fact">Working memory cleared.</div>
+                                <div class="t-line">CLIPS&gt; <span class="t-cursor"></span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Design & Inference Workflow -->
+            <div style="border-bottom: 1px solid var(--border); padding-bottom: 32px;">
+                <h3 style="font-size: 1.4rem; font-weight: 600; letter-spacing: -.02em; margin-bottom: 24px; display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 6px; height: 6px; background: var(--white); transform: rotate(45deg);"></span>
+                    System Design &amp; Inference Workflow
+                </h3>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px;">
+                    <div style="border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--bg-2); display: flex; flex-direction: column;">
+                        <div style="background: #ffffff; padding: 10px; flex-grow: 1; display: flex; align-items: center; justify-content: center; min-height: 250px;">
+                            <img src="./project_assets/career_page_5.png" alt="CLIPS Reasoning Flow Diagram" style="width: 100%; height: auto; max-height: 230px; object-fit: contain;">
+                        </div>
+                        <div style="padding: 16px; border-top: 1px solid var(--border); background: var(--bg-2);">
+                            <h5 style="font-size: 0.95rem; font-weight: 600; margin-bottom: 8px;">CLIPS Knowledge Inference Tree</h5>
+                            <p style="font-size: 0.82rem; color: var(--fg-2); line-height: 1.5; margin: 0;">Diagram representing the logical reasoning flow. Confirmed user parameters (personality traits, skills, and preferences) are dynamically matched against defined rules to identify archetypes, which subsequently map to career recommendations.</p>
+                        </div>
+                    </div>
+
+                    <div style="border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--bg-2); display: flex; flex-direction: column;">
+                        <div style="background: #ffffff; padding: 10px; flex-grow: 1; display: flex; align-items: center; justify-content: center; min-height: 250px;">
+                            <img src="./project_assets/career_page_6.png" alt="Inference Engine Strategy & Rules" style="width: 100%; height: auto; max-height: 230px; object-fit: contain;">
+                        </div>
+                        <div style="padding: 16px; border-top: 1px solid var(--border); background: var(--bg-2);">
+                            <h5 style="font-size: 0.95rem; font-weight: 600; margin-bottom: 8px;">Inference Strategy &amp; Rules Structure</h5>
+                            <p style="font-size: 0.82rem; color: var(--fg-2); line-height: 1.5; margin: 0;">Details the forward chaining execution cycle inside the CLIPS IDE. Describes user profile assertions, intermediate rule firing thresholds, and final priority output logic filtering utilizing salience weights.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- What I Learned -->
+            <div>
+                <h3 style="font-size: 1.4rem; font-weight: 600; letter-spacing: -.02em; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 6px; height: 6px; background: var(--white); transform: rotate(45deg);"></span>
+                    What I Learned
+                </h3>
+                <ul style="list-style: decimal; margin-left: 20px; color: var(--fg-2); font-size: 0.95rem; line-height: 1.7; display: flex; flex-direction: column; gap: 12px;">
+                    <li><strong>Expert Logic Coding:</strong> Learned to structure complex diagnostic knowledge bases using CLIPS constructs like <code>deftemplate</code>, <code>defrule</code>, and <code>deffacts</code>.</li>
+                    <li><strong>Inference Tree Architecture:</strong> Developed a solid understanding of forward chaining logic where inputs trigger multi-stage intermediate facts (Archetypes) which eventually yield recommendations.</li>
+                    <li><strong>Salience Filtering:</strong> Implemented rule prioritization and selection mechanics to sort recommendations and output only the top 3 matches to prevent information overload.</li>
+                    <li><strong>Validation &amp; Bounds checking:</strong> Programmed user-defined input validation loops in CLIPS (deffunctions) to check numerical ranges and string constraints securely.</li>
+                </ul>
+            </div>
+
+        </div>
+
+        <div style="border-top: 1px solid var(--border); padding-top: 32px; text-align: center;" class="reveal">
+            <a href="./projects.html" class="btn btn-ghost">← Back to Portfolio</a>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-name"><span class="tri"></span> Asynawi Azwarrudin</div>
+        <div class="footer-nav">
+            <a href="./index.html">Home</a>
+            <a href="./about.html">About</a>
+            <a href="./projects.html">Portfolio</a>
+            <a href="./contact.html">Contact</a>
+        </div>
+        <p class="footer-copy">© 2026 Asynawi Azwarrudin — All rights reserved</p>
+    </footer>
+
+    <button class="btt" id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+    <script>
+        // ── Page boilerplate ──
+        window.addEventListener('load', () => {
+            setTimeout(() => document.getElementById('loader').classList.add('done'), 500);
+        });
+        window.addEventListener('scroll', () => {
+            document.getElementById('navbar').classList.toggle('scrolled', scrollY > 40);
+            document.getElementById('btt').classList.toggle('show', scrollY > 500);
+            const h = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const bar = document.getElementById('scrollProgress');
+            if (bar) bar.style.width = ((document.documentElement.scrollTop / h) * 100) + '%';
+        });
+        const obs = new IntersectionObserver(entries => {
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('vis'); });
+        }, { threshold: 0.08 });
+        document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+
+        // ═══════════════════════════════════════════════════
+        // CLIPS INFERENCE ENGINE SIMULATOR
+        // ═══════════════════════════════════════════════════
+
+        const QUESTIONS = [
+            {
+                q: "When debugging a problem, what is your first instinct?",
+                opts: [
+                    { text: "Isolate variables and test hypotheses systematically", tags: ["analytical", "engineering"] },
+                    { text: "Sketch the architecture and trace data flow visually", tags: ["architect", "systems"] },
+                    { text: "Discuss with teammates and brainstorm solutions", tags: ["collaborator", "soft-skills"] },
+                    { text: "Prototype a quick fix and iterate from there", tags: ["innovator", "rapid"] }
+                ]
+            },
+            {
+                q: "Which type of project excites you the most?",
+                opts: [
+                    { text: "Training a neural network to predict real-world outcomes", tags: ["ai-ml", "data"] },
+                    { text: "Building a full-stack web app from database to UI", tags: ["fullstack", "engineering"] },
+                    { text: "Designing secure infrastructure and monitoring threats", tags: ["cybersecurity", "systems"] },
+                    { text: "Automating deployment pipelines and scaling systems", tags: ["devops", "cloud"] }
+                ]
+            },
+            {
+                q: "How would you describe your learning style?",
+                opts: [
+                    { text: "I read research papers and documentation thoroughly", tags: ["analytical", "ai-ml"] },
+                    { text: "I learn best by building things hands-on", tags: ["innovator", "fullstack"] },
+                    { text: "I prefer structured courses with clear milestones", tags: ["architect", "methodical"] },
+                    { text: "I learn by teaching and explaining concepts to others", tags: ["collaborator", "soft-skills"] }
+                ]
+            },
+            {
+                q: "Pick the skill set you are most confident in:",
+                opts: [
+                    { text: "Python, statistics, and data visualization", tags: ["data", "ai-ml"] },
+                    { text: "JavaScript, APIs, and responsive design", tags: ["fullstack", "engineering"] },
+                    { text: "Networking, Linux, and penetration testing", tags: ["cybersecurity", "systems"] },
+                    { text: "Docker, CI/CD, and cloud platforms (AWS/GCP)", tags: ["devops", "cloud"] }
+                ]
+            },
+            {
+                q: "In a team environment, which role do you naturally take?",
+                opts: [
+                    { text: "The strategist — I plan the roadmap and architecture", tags: ["architect", "systems"] },
+                    { text: "The analyst — I research data and provide insights", tags: ["analytical", "data"] },
+                    { text: "The communicator — I coordinate and keep everyone aligned", tags: ["collaborator", "soft-skills"] },
+                    { text: "The builder — I start coding while others are still planning", tags: ["innovator", "rapid"] }
+                ]
+            }
+        ];
+
+        // Career database with weighted tag mapping
+        const CAREERS = {
+            "ai-ml":         { title: "AI / Machine Learning Engineer", salary: "RM 5,000 – RM 35,000+", growth: "25%" },
+            "data":          { title: "Data Scientist",                 salary: "RM 4,000 – RM 25,000+", growth: "22%" },
+            "fullstack":     { title: "Full-Stack Developer",           salary: "RM 3,500 – RM 20,000+", growth: "18%" },
+            "cybersecurity": { title: "Cybersecurity Analyst",          salary: "RM 4,000 – RM 22,000+", growth: "20%" },
+            "devops":        { title: "DevOps / Cloud Engineer",        salary: "RM 4,500 – RM 28,000+", growth: "24%" },
+            "systems":       { title: "Systems Architect",              salary: "RM 5,000 – RM 30,000+", growth: "16%" }
+        };
+
+        const ARCHETYPES = {
+            "analytical":   { name: "The Analyst",       icon: "🔬" },
+            "architect":    { name: "The Architect",     icon: "🏗️" },
+            "collaborator": { name: "The Collaborator",  icon: "🤝" },
+            "innovator":    { name: "The Innovator",     icon: "💡" }
+        };
+
+        // State
+        let currentQ = 0;
+        let answers = [];     // array of selected tag arrays
+        let rulesFired = 0;
+
+        // DOM refs
+        const engineDot    = document.getElementById('engineDot');
+        const engineStatus = document.getElementById('engineStatus');
+        const engineStep   = document.getElementById('engineStep');
+        const stepBars     = [0,1,2,3,4].map(i => document.getElementById('bar'+i));
+
+        const questionView   = document.getElementById('questionView');
+        const processingView = document.getElementById('processingView');
+        const resultView     = document.getElementById('resultView');
+        const qNumber        = document.getElementById('qNumber');
+        const qText          = document.getElementById('qText');
+        const qOptions       = document.getElementById('qOptions');
+
+        const termBody    = document.getElementById('termBody');
+        const ruleCountEl = document.getElementById('ruleCount');
+
+        const archetypeName = document.getElementById('archetypeName');
+        const archetypeBadge = document.getElementById('archetypeBadge');
+        const careerCards   = document.getElementById('careerCards');
+        const restartBtn    = document.getElementById('restartBtn');
+        const processingDetail = document.getElementById('processingDetail');
+
+        // Terminal logger
+        function termLog(text, cls) {
+            // Remove cursor line
+            const cursorLine = termBody.querySelector('.t-line:last-child');
+            if (cursorLine && cursorLine.querySelector('.t-cursor')) {
+                cursorLine.remove();
+            }
+
+            const line = document.createElement('div');
+            line.className = 't-line' + (cls ? ' ' + cls : '');
+            line.textContent = text;
+            termBody.appendChild(line);
+
+            // Re-add cursor
+            const cLine = document.createElement('div');
+            cLine.className = 't-line';
+            cLine.innerHTML = 'CLIPS&gt; <span class="t-cursor"></span>';
+            termBody.appendChild(cLine);
+
+            termBody.scrollTop = termBody.scrollHeight;
+        }
+
+        // Render current question
+        function renderQuestion() {
+            const q = QUESTIONS[currentQ];
+            qNumber.textContent = `Question ${currentQ + 1} of 5`;
+            qText.textContent = q.q;
+            qOptions.innerHTML = '';
+
+            const letters = ['A', 'B', 'C', 'D'];
+            q.opts.forEach((opt, i) => {
+                const el = document.createElement('div');
+                el.className = 'q-option';
+                el.innerHTML = `<div class="q-option-marker">${letters[i]}</div><span>${opt.text}</span>`;
+                el.addEventListener('click', () => selectOption(i));
+                qOptions.appendChild(el);
+            });
+
+            // Update step bars
+            stepBars.forEach((bar, i) => {
+                bar.className = 'step-bar';
+                if (i < currentQ) bar.classList.add('done');
+                if (i === currentQ) bar.classList.add('active');
+            });
+
+            engineStep.textContent = `${currentQ} / 5 assertions`;
+        }
+
+        // Handle answer selection
+        function selectOption(idx) {
+            const opts = qOptions.querySelectorAll('.q-option');
+            opts.forEach(o => o.classList.remove('selected'));
+            opts[idx].classList.add('selected');
+
+            const selectedTags = QUESTIONS[currentQ].opts[idx].tags;
+            answers[currentQ] = selectedTags;
+
+            // Terminal log: assert fact
+            rulesFired++;
+            ruleCountEl.textContent = rulesFired + ' rules fired';
+            const factName = ['problem-solving', 'project-interest', 'learning-style', 'skill-set', 'team-role'][currentQ];
+            termLog(`(assert (user-${factName} "${QUESTIONS[currentQ].opts[idx].text.substring(0, 40)}..."))`, 'assert');
+
+            // Fire a rule
+            setTimeout(() => {
+                rulesFired++;
+                ruleCountEl.textContent = rulesFired + ' rules fired';
+                termLog(`FIRE  ${rulesFired}  evaluate-${factName}: f-${currentQ + 3}`, 'rule');
+
+                // Intermediate fact
+                setTimeout(() => {
+                    const tag = selectedTags[0];
+                    termLog(`==> f-${rulesFired + 5}  (profile-trait (dimension "${tag}") (weight 1))`, 'fact');
+
+                    // Advance to next question after brief delay
+                    setTimeout(() => {
+                        currentQ++;
+                        if (currentQ < 5) {
+                            renderQuestion();
+                            engineDot.className = 'engine-dot';
+                            engineStatus.textContent = 'CLIPS 6.4 — Awaiting input';
+                        } else {
+                            runInference();
+                        }
+                    }, 400);
+
+                }, 250);
+
+            }, 300);
+
+            // Visual feedback
+            engineDot.className = 'engine-dot processing';
+            engineStatus.textContent = 'CLIPS 6.4 — Asserting fact...';
+        }
+
+        // Run inference after all 5 questions
+        function runInference() {
+            questionView.style.display = 'none';
+            processingView.classList.add('show');
+
+            engineDot.className = 'engine-dot processing';
+            engineStatus.textContent = 'CLIPS 6.4 — Running inference...';
+            engineStep.textContent = '5 / 5 assertions';
+            stepBars.forEach(b => b.className = 'step-bar done');
+
+            termLog('(run)', 'assert');
+
+            const processingSteps = [
+                { text: 'Matching personality traits against 6 archetypes...', delay: 600 },
+                { text: 'Calculating career-skill correlation matrix...', delay: 1200 },
+                { text: 'Applying salience weights (priority filtering)...', delay: 1800 },
+                { text: 'Sorting top 3 recommendations by match score...', delay: 2400 }
+            ];
+
+            processingSteps.forEach(step => {
+                setTimeout(() => {
+                    processingDetail.textContent = step.text;
+                    rulesFired += Math.floor(Math.random() * 5) + 3;
+                    ruleCountEl.textContent = rulesFired + ' rules fired';
+                }, step.delay);
+            });
+
+            // Terminal processing logs
+            setTimeout(() => termLog('FIRE  ' + (rulesFired+1) + '  classify-archetype: f-8,f-9,f-10', 'rule'), 500);
+            setTimeout(() => termLog('FIRE  ' + (rulesFired+2) + '  match-career-profiles: f-11,f-12', 'rule'), 1000);
+            setTimeout(() => termLog('FIRE  ' + (rulesFired+3) + '  apply-salience-filter: salience=100', 'rule'), 1500);
+            setTimeout(() => termLog('FIRE  ' + (rulesFired+4) + '  generate-roadmap: phase-1,phase-2,phase-3', 'rule'), 2000);
+
+            // Show results after processing
+            setTimeout(() => showResults(), 3000);
+        }
+
+        // Calculate results and display
+        function showResults() {
+            processingView.classList.remove('show');
+            resultView.classList.add('show');
+
+            engineDot.className = 'engine-dot';
+            engineStatus.textContent = 'CLIPS 6.4 — Inference complete';
+
+            // Tally tags
+            const tagCount = {};
+            answers.flat().forEach(tag => {
+                tagCount[tag] = (tagCount[tag] || 0) + 1;
+            });
+
+            // Determine archetype
+            const archetypeKeys = Object.keys(ARCHETYPES);
+            let bestArchetype = 'analytical';
+            let bestCount = 0;
+            archetypeKeys.forEach(k => {
+                if ((tagCount[k] || 0) > bestCount) {
+                    bestCount = tagCount[k] || 0;
+                    bestArchetype = k;
+                }
+            });
+            const arch = ARCHETYPES[bestArchetype];
+            archetypeBadge.querySelector('.archetype-icon').textContent = arch.icon;
+            archetypeName.textContent = arch.name;
+
+            termLog(`==> Archetype: ${arch.name}`, 'result');
+
+            // Score careers
+            const careerKeys = Object.keys(CAREERS);
+            const scored = careerKeys.map(k => ({
+                key: k,
+                score: Math.min(98, 65 + (tagCount[k] || 0) * 12 + Math.floor(Math.random() * 8)),
+                ...CAREERS[k]
+            }));
+            scored.sort((a, b) => b.score - a.score);
+            const top3 = scored.slice(0, 3);
+
+            // Log to terminal
+            termLog('>>> RECOMMENDED CAREERS:', 'result');
+            top3.forEach((c, i) => {
+                termLog(`  ${i+1}. ${c.title} — Match: ${c.score}%`, 'result');
+            });
+            termLog(`${rulesFired} rules fired. Inference complete.`, 'fact');
+
+            // Render career cards with staggered animation
+            careerCards.innerHTML = '';
+            const rankLabels = ['Top Match', 'Second Match', 'Third Match'];
+
+            top3.forEach((career, i) => {
+                const card = document.createElement('div');
+                card.className = 'career-card';
+                card.innerHTML = `
+                    <div class="career-card-header">
+                        <div>
+                            <div class="career-card-rank">${rankLabels[i]}</div>
+                            <div class="career-card-title">${career.title}</div>
+                        </div>
+                        <div class="career-card-score" style="color: ${i === 0 ? '#a78bfa' : i === 1 ? '#818cf8' : '#6366f1'}">${career.score}%</div>
+                    </div>
+                    <div class="career-card-bar">
+                        <div class="career-card-bar-fill" id="barFill${i}"></div>
+                    </div>
+                    <div class="career-card-meta">
+                        <span>${career.salary}</span>
+                        <span>Growth: ${career.growth}</span>
+                    </div>
+                `;
+                careerCards.appendChild(card);
+
+                // Stagger the card reveal
+                setTimeout(() => {
+                    card.classList.add('show');
+                    // Animate the bar fill
+                    setTimeout(() => {
+                        document.getElementById('barFill' + i).style.width = career.score + '%';
+                    }, 150);
+                }, 200 + i * 250);
+            });
+        }
+
+        // Restart
+        restartBtn.addEventListener('click', () => {
+            currentQ = 0;
+            answers = [];
+            rulesFired = 0;
+
+            questionView.style.display = '';
+            resultView.classList.remove('show');
+            processingView.classList.remove('show');
+
+            ruleCountEl.textContent = '0 rules fired';
+            engineDot.className = 'engine-dot idle';
+            engineStatus.textContent = 'CLIPS 6.4 — Idle';
+
+            // Reset terminal
+            termBody.innerHTML = `
+                <div class="t-line">CLIPS&gt; (load "career_navigator.clp")</div>
+                <div class="t-line fact">Loaded 47 rules, 6 archetypes, 12 careers.</div>
+                <div class="t-line">CLIPS&gt; (reset)</div>
+                <div class="t-line fact">Working memory cleared.</div>
+                <div class="t-line">CLIPS&gt; <span class="t-cursor"></span></div>
+            `;
+
+            renderQuestion();
+        });
+
+        // Initialize
+        renderQuestion();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flood Detector IoT Early Warning — Project Details</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+    <style>
+        /* Simulator Specific Styles */
+        .sim-container {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 32px;
+            background: var(--bg-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 32px;
+            margin-top: 24px;
+            align-items: center;
+        }
+        @media (max-width: 768px) {
+            .sim-container {
+                grid-template-columns: 1fr;
+                gap: 24px;
+                padding: 20px;
+            }
+        }
+        
+        /* Water Tank */
+        .tank-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        .tank {
+            position: relative;
+            width: 140px;
+            height: 250px;
+            border: 4px solid var(--border-hi);
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            background: rgba(255, 255, 255, 0.02);
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(255,255,255,0.02), 0 8px 24px rgba(0,0,0,0.5);
+        }
+        .water {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 20%;
+            background: linear-gradient(180deg, rgba(77, 163, 255, 0.7) 0%, rgba(0, 82, 204, 0.8) 100%);
+            transition: height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 0 20px rgba(77, 163, 255, 0.5);
+        }
+        /* Water wave animation */
+        .water::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: 0;
+            right: 0;
+            height: 12px;
+            background-image: radial-gradient(circle at 50% 100%, transparent 45%, rgba(77, 163, 255, 0.7) 55%);
+            background-size: 20px 12px;
+            animation: wave 1.5s linear infinite;
+        }
+        @keyframes wave {
+            0% { background-position-x: 0; }
+            100% { background-position-x: 20px; }
+        }
+        
+        /* Sensor indicator lines */
+        .sensor-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            border-top: 1px dashed rgba(255, 255, 255, 0.15);
+            font-family: var(--mono);
+            font-size: 0.65rem;
+            color: var(--fg-3);
+            padding-left: 8px;
+            line-height: 1.4;
+        }
+        .line-danger { bottom: 80%; border-color: rgba(255, 77, 77, 0.4); color: rgba(255, 77, 77, 0.7); }
+        .line-warning { bottom: 50%; border-color: rgba(255, 165, 0, 0.4); color: rgba(255, 165, 0, 0.7); }
+        
+        /* Control Panel */
+        .control-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        /* Slider */
+        .slider-box {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .sim-slider {
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--border);
+            outline: none;
+            cursor: pointer;
+        }
+        .sim-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--white);
+            box-shadow: 0 0 10px rgba(255,255,255,0.4);
+            transition: transform 0.1s;
+        }
+        .sim-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+        
+        /* LCD Display */
+        .lcd-display {
+            background: #001133;
+            border: 4px solid #1a233d;
+            border-radius: 6px;
+            padding: 12px 16px;
+            font-family: var(--mono);
+            color: #4da3ff;
+            box-shadow: 0 0 15px rgba(0, 82, 204, 0.4), inset 0 0 10px rgba(0,0,0,0.8);
+            letter-spacing: 0.05em;
+            line-height: 1.4;
+            min-height: 70px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .lcd-display::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+        .lcd-danger {
+            color: #ff4d4d;
+            box-shadow: 0 0 15px rgba(255, 77, 77, 0.4), inset 0 0 10px rgba(0,0,0,0.8);
+        }
+        .lcd-warning {
+            color: #ffa500;
+            box-shadow: 0 0 15px rgba(255, 165, 0, 0.4), inset 0 0 10px rgba(0,0,0,0.8);
+        }
+        
+        /* LEDs indicator row */
+        .led-row {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+            margin-top: 8px;
+        }
+        .led-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--mono);
+            font-size: 0.68rem;
+            color: var(--fg-3);
+        }
+        .led-bulb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #151515;
+            border: 2px solid #252525;
+            transition: all 0.2s ease;
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.05);
+        }
+        /* LED active states */
+        .led-blue.active {
+            background: #00a2ff;
+            border-color: #7cd2ff;
+            box-shadow: 0 0 15px #00a2ff, inset 0 2px 4px rgba(255,255,255,0.4);
+        }
+        .led-orange.active {
+            background: #ff8800;
+            border-color: #ffb766;
+            box-shadow: 0 0 15px #ff8800, inset 0 2px 4px rgba(255,255,255,0.4);
+        }
+        .led-red.active {
+            background: #ff2a2a;
+            border-color: #ff8080;
+            box-shadow: 0 0 15px #ff2a2a, inset 0 2px 4px rgba(255,255,255,0.4);
+            animation: ledFlash 0.3s infinite alternate;
+        }
+        @keyframes ledFlash {
+            0% { box-shadow: 0 0 4px #ff2a2a; opacity: 0.6; }
+            100% { box-shadow: 0 0 20px #ff2a2a; opacity: 1; }
+        }
+        
+        /* Audio Control & Sound Waves */
+        .audio-control-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 16px;
+        }
+        
+        /* Buzzer speaker animation */
+        .speaker-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .buzzer-icon {
+            font-size: 1.3rem;
+            color: var(--fg-3);
+            transition: color 0.2s;
+            position: relative;
+        }
+        .buzzer-icon.active {
+            color: #ff4d4d;
+            animation: shake 0.1s infinite;
+        }
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            50% { transform: translate(-1px, -1px) rotate(1deg); }
+            100% { transform: translate(1px, -1px) rotate(-1deg); }
+        }
+        .sound-wave {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 10px;
+            height: 10px;
+            border-right: 2px solid #ff4d4d;
+            border-radius: 50%;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .sound-wave-1 { width: 14px; height: 14px; }
+        .sound-wave-2 { width: 22px; height: 22px; }
+        .buzzer-icon.active .sound-wave-1 {
+            animation: ripple 0.6s linear infinite;
+        }
+        .buzzer-icon.active .sound-wave-2 {
+            animation: ripple 0.6s linear infinite 0.3s;
+        }
+        @keyframes ripple {
+            0% { opacity: 0.2; transform: translateY(-50%) scale(0.6); }
+            50% { opacity: 0.8; }
+            100% { opacity: 0; transform: translateY(-50%) scale(1.4); }
+        }
+        
+        /* Emergency warning flashing container */
+        .sim-container.emergency-active {
+            border-color: rgba(255, 77, 77, 0.4);
+            animation: panelFlash 2s infinite ease-in-out;
+        }
+        @keyframes panelFlash {
+            0%, 100% { box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+            50% { box-shadow: 0 0 20px rgba(255, 77, 77, 0.15); border-color: rgba(255, 77, 77, 0.6); }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="scroll-progress" id="scrollProgress"></div>
+
+    <div class="loader" id="loader">
+        <div class="tri"></div>
+    </div>
+
+    <!-- NAVBAR -->
+    <nav class="navbar" id="navbar">
+        <a href="./index.html" class="nav-brand"><span class="tri"></span> Asynawi Azwarrudin</a>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="./index.html">Home</a></li>
+            <li><a href="./about.html">About</a></li>
+            <li><a href="./projects.html" class="active">Portfolio</a></li>
+            <li><a href="./contact.html">Contact</a></li>
+        </ul>
+        <button class="hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')">
+            <span></span><span></span><span></span>
+        </button>
+    </nav>
+
+    <!-- ═══ PROJECT DETAIL ═══ -->
+    <section class="section" style="padding-top: 120px; max-width: 900px;">
+        <div class="reveal" style="margin-bottom: 32px;">
+            <a href="./projects.html" class="link" style="font-family: var(--mono); font-size: 0.82rem; margin-bottom: 24px; display: inline-flex; align-items: center; gap: 8px;">← Back to Portfolio</a>
+            <span class="eyebrow" style="margin-top: 16px;">Arduino · IoT · Microcontroller System</span>
+            <h1 style="font-size: clamp(2rem, 5vw, 3rem); font-weight: 700; letter-spacing: -.03em; line-height: 1.1; margin-bottom: 16px;">Flood Detector &amp; IoT Early Warning System</h1>
+            <div class="card-tags" style="margin-bottom: 24px;">
+                <span class="card-tag">Arduino Uno</span>
+                <span class="card-tag">Sensor Calibration</span>
+                <span class="card-tag">Piezo Alarm</span>
+                <span class="card-tag">Liquid Level Detection</span>
+            </div>
+        </div>
+
+        <!-- Project Hero Image (User Prototype Setup) -->
+        <div class="reveal" style="border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 48px; background: var(--bg-2);">
+            <img src="./flood_detector_setup.jpg" alt="Flood Detector IoT Experimental Setup" style="width: 100%; display: block; object-fit: cover; aspect-ratio: 16/9; filter: brightness(0.95);">
+        </div>
+
+        <div class="grid qualities-grid reveal" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 48px; text-align: left;">
+            <div class="quality-box" style="padding: 20px; text-align: left;">
+                <div style="font-family: var(--mono); font-size: 0.72rem; color: var(--fg-3); text-transform: uppercase;">Duration</div>
+                <div style="font-weight: 600; font-size: 1rem; margin-top: 4px;">Embedded Project, 2024</div>
+            </div>
+            <div class="quality-box" style="padding: 20px; text-align: left;">
+                <div style="font-family: var(--mono); font-size: 0.72rem; color: var(--fg-3); text-transform: uppercase;">Platform</div>
+                <div style="font-weight: 600; font-size: 1rem; margin-top: 4px;">Arduino AVR Architecture</div>
+            </div>
+            <div class="quality-box" style="padding: 20px; text-align: left;">
+                <div style="font-family: var(--mono); font-size: 0.72rem; color: var(--fg-3); text-transform: uppercase;">Trigger Time</div>
+                <div style="font-weight: 600; font-size: 1rem; margin-top: 4px;">Real-Time (< 100ms)</div>
+            </div>
+        </div>
+
+        <!-- Content Sections -->
+        <div class="reveal" style="display: flex; flex-direction: column; gap: 40px; margin-bottom: 56px;">
+            
+            <!-- What the Project Does -->
+            <div style="border-bottom: 1px solid var(--border); padding-bottom: 32px;">
+                <h3 style="font-size: 1.4rem; font-weight: 600; letter-spacing: -.02em; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 6px; height: 6px; background: var(--white); transform: rotate(45deg);"></span>
+                    What the Project Does
+                </h3>
+                <p style="color: var(--fg-2); font-size: 1rem; line-height: 1.75; margin-bottom: 16px;">
+                    This Internet of Things (IoT) prototype acts as a local early warning system to monitor rising water levels and prevent flash flood casualties. Traditional weather forecasting registers rain totals but cannot predict rapid storm drainage overflow in residential areas. Using an array of liquid sensors connected to a centralized processing block, this microcontroller system provides visual, textual, and acoustic emergency signals to residents in real-time.
+                </p>
+                <ul style="list-style: disc; margin-left: 20px; color: var(--fg-2); font-size: 0.95rem; line-height: 1.7; display: flex; flex-direction: column; gap: 8px;">
+                    <li><strong>Continuous Water Level Tracking:</strong> Measures depth inside drainage nodes or containment basins utilizing calibrated sensors.</li>
+                    <li><strong>Tri-State Indicator Logic:</strong> Displays environmental risk level across Safe (Blue LED), Warning (Orange LED), and Emergency Danger (Flashing Red LED) triggers.</li>
+                    <li><strong>Integrated Alarms &amp; Telemetry:</strong> Features a 16x2 character liquid crystal display (LCD) for textual updates, alongside an high-decibel piezoceramic buzzer triggered by critical level bounds.</li>
+                    <li><strong>Embedded Fail-Safes:</strong> Uses non-blocking loops to maintain LCD polling frequency and active buzzer pulse intervals concurrently without system freeze.</li>
+                </ul>
+            </div>
+
+            <!-- INTERACTIVE SIMULATION PANEL -->
+            <div style="border-bottom: 1px solid var(--border); padding-bottom: 40px;">
+                <h3 style="font-size: 1.4rem; font-weight: 600; letter-spacing: -.02em; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 6px; height: 6px; background: var(--white); transform: rotate(45deg);"></span>
+                    Interactive IoT System Simulator
+                </h3>
+                <p style="color: var(--fg-2); font-size: 0.92rem; line-height: 1.6; margin-bottom: 16px;">
+                    Drag the depth slider to raise the water level and observe the real-time response of the Arduino system, character LCD display, indicating LEDs, and warning sound alarm (Web Audio API synthetic buzzer).
+                </p>
+
+                <!-- Simulator Container -->
+                <div class="sim-container" id="simContainer">
+                    
+                    <!-- Left: Water Tank Visual -->
+                    <div class="tank-wrapper">
+                        <div class="tank">
+                            <div class="water" id="simWater"></div>
+                            <div class="sensor-line line-danger">DANGER (80%)</div>
+                            <div class="sensor-line line-warning">WARNING (50%)</div>
+                        </div>
+                        <div style="font-family: var(--mono); font-size: 0.72rem; color: var(--fg-2);" id="simLevelVal">Depth: 20%</div>
+                    </div>
+                    
+                    <!-- Right: Control Box & LED Indicators -->
+                    <div class="control-panel">
+                        <!-- LCD Screen -->
+                        <div class="lcd-display" id="simLcd">
+                            <div style="font-size: 0.82rem; font-family: var(--mono);">Water Level: 20%</div>
+                            <div style="font-size: 0.82rem; font-family: var(--mono); font-weight: 600;">Safe Condition</div>
+                        </div>
+                        
+                        <!-- LEDs row -->
+                        <div class="led-row">
+                            <div class="led-indicator">
+                                <div class="led-bulb led-blue active" id="ledBlue"></div>
+                                <span>BLUE</span>
+                            </div>
+                            <div class="led-indicator">
+                                <div class="led-bulb led-orange" id="ledOrange"></div>
+                                <span>ORANGE</span>
+                            </div>
+                            <div class="led-indicator">
+                                <div class="led-bulb led-red" id="ledRed"></div>
+                                <span>RED</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Slider Control -->
+                        <div class="slider-box">
+                            <div style="display:flex; justify-content:space-between; font-family:var(--mono); font-size:0.72rem; color:var(--fg-3);">
+                                <span>0% (Empty)</span>
+                                <span>100% (Flooded)</span>
+                            </div>
+                            <input type="range" min="0" max="100" value="20" class="sim-slider" id="waterSlider">
+                        </div>
+
+                        <!-- Audio and Controls -->
+                        <div class="audio-control-bar">
+                            <div class="speaker-box">
+                                <div class="buzzer-icon" id="buzzerIcon">
+                                    📢
+                                    <div class="sound-wave sound-wave-1"></div>
+                                    <div class="sound-wave sound-wave-2"></div>
+                                </div>
+                                <span style="font-family: var(--mono); font-size: 0.72rem; color: var(--fg-2);" id="speakerText">Buzzer: Muted</span>
+                            </div>
+                            <button class="btn btn-ghost" style="padding: 6px 12px; font-size: 0.76rem; border-radius: 4px;" id="audioToggle">Enable Audio Alert</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hardware Layout & Wiring -->
+            <div style="border-bottom: 1px solid var(--border); padding-bottom: 32px;">
+                <h3 style="font-size: 1.4rem; font-weight: 600; letter-spacing: -.02em; margin-bottom: 24px; display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 6px; height: 6px; background: var(--white); transform: rotate(45deg);"></span>
+                    Hardware Architecture &amp; Prototype Assembly
+                </h3>
+                
+                <p style="color: var(--fg-2); font-size: 1rem; line-height: 1.75; margin-bottom: 24px;">
+                    The system is divided into two primary sub-assemblies: the sensor tank unit and the watertight electronics control housing. The circuit is designed to handle multiple analog and digital feedback sensors with isolated pull-down structures to prevent current leakage and sensor corrosion.
+                </p>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px;">
+                    <!-- Card 1: Internal Wiring -->
+                    <div style="border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--bg-2); display: flex; flex-direction: column;">
+                        <img src="./flood_detector_wiring.jpg" alt="Arduino Uno Internal Wiring Layout" style="width: 100%; display: block; object-fit: cover; aspect-ratio: 4/3;">
+                        <div style="padding: 16px; border-top: 1px solid var(--border); background: var(--bg-2);">
+                            <h5 style="font-size: 0.95rem; font-weight: 600; margin-bottom: 8px;">Control Box Internal Electronics</h5>
+                            <p style="font-size: 0.82rem; color: var(--fg-2); line-height: 1.5; margin: 0;">Arduino Uno R3 mainboard wired to I2C LCD lines, custom solder prototype boards, discrete resistors, and an active high-decibel piezoceramic warning buzzer. Jumper lines are bundle-tied to prevent mechanical shear.</p>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Box in Action -->
+                    <div style="border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--bg-2); display: flex; flex-direction: column;">
+                        <img src="./flood_detector_action.jpg" alt="Prototype in active condition" style="width: 100%; display: block; object-fit: cover; aspect-ratio: 4/3;">
+                        <div style="padding: 16px; border-top: 1px solid var(--border); background: var(--bg-2);">
+                            <h5 style="font-size: 0.95rem; font-weight: 600; margin-bottom: 8px;">Physical System Integration &amp; LCD Test</h5>
+                            <p style="font-size: 0.82rem; color: var(--fg-2); line-height: 1.5; margin: 0;">Completed control box faceplate under test. Shows the blue back-lit 16x2 character LCD displaying custom textual status (e.g. Water Level: 20% Safe Condition), alongside indicating LED sockets.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- What I Learned -->
+            <div>
+                <h3 style="font-size: 1.4rem; font-weight: 600; letter-spacing: -.02em; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 6px; height: 6px; background: var(--white); transform: rotate(45deg);"></span>
+                    Key Learnings &amp; Insights
+                </h3>
+                <ul style="list-style: decimal; margin-left: 20px; color: var(--fg-2); font-size: 0.95rem; line-height: 1.7; display: flex; flex-direction: column; gap: 12px;">
+                    <li><strong>Sensor Calibration &amp; Signal Filtering:</strong> Learned how to filter high-frequency noise from ultrasonic and liquid depth sensors using simple moving average algorithms in C++ to avoid false alarms.</li>
+                    <li><strong>Non-Blocking Task Execution:</strong> Implemented timing checks using <code>millis()</code> instead of standard blocking <code>delay()</code> functions. This guarantees that the LEDs can flash and the buzzer can pulse while the LCD is continuously writing updates.</li>
+                    <li><strong>Input Overvoltage Protection:</strong> Configured pull-down arrays on sensor inputs to prevent floating voltage readings from water conduction, which can cause reading deviations.</li>
+                    <li><strong>Prototyping Watertight Closures:</strong> Gained experience designing and drilling compact modular layouts inside watertight industrial boxes, separating high-humidity containers from sensitive microcontroller boards.</li>
+                </ul>
+            </div>
+
+        </div>
+
+        <div style="border-top: 1px solid var(--border); padding-top: 32px; text-align: center;" class="reveal">
+            <a href="./projects.html" class="btn btn-ghost">← Back to Portfolio</a>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-name"><span class="tri"></span> Asynawi Azwarrudin</div>
+        <div class="footer-nav">
+            <a href="./index.html">Home</a>
+            <a href="./about.html">About</a>
+            <a href="./projects.html">Portfolio</a>
+            <a href="./contact.html">Contact</a>
+        </div>
+        <p class="footer-copy">© 2026 Asynawi Azwarrudin — All rights reserved</p>
+    </footer>
+
+    <button class="btt" id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+    <script>
+        // Loader
+        window.addEventListener('load', () => {
+            setTimeout(() => document.getElementById('loader').classList.add('done'), 500);
+        });
+
+        // Navbar scroll logic
+        window.addEventListener('scroll', () => {
+            document.getElementById('navbar').classList.toggle('scrolled', scrollY > 40);
+            document.getElementById('btt').classList.toggle('show', scrollY > 500);
+        });
+
+        // Reveal on scroll
+        const obs = new IntersectionObserver(entries => {
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('vis'); });
+        }, { threshold: 0.08 });
+        document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+        // Scroll progress indicator
+        window.addEventListener('scroll', () => {
+            const winScroll = document.documentElement.scrollTop || document.body.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            const scrollBar = document.getElementById('scrollProgress');
+            if (scrollBar) {
+                scrollBar.style.width = scrolled + '%';
+            }
+        });
+
+        // ==========================================
+        // SIMULATOR INTERACTIVE LOGIC (Wow Factor!)
+        // ==========================================
+        const slider = document.getElementById('waterSlider');
+        const water = document.getElementById('simWater');
+        const levelVal = document.getElementById('simLevelVal');
+        const lcd = document.getElementById('simLcd');
+        
+        const ledBlue = document.getElementById('ledBlue');
+        const ledOrange = document.getElementById('ledOrange');
+        const ledRed = document.getElementById('ledRed');
+        
+        const buzzerIcon = document.getElementById('buzzerIcon');
+        const speakerText = document.getElementById('speakerText');
+        const audioToggle = document.getElementById('audioToggle');
+        const simContainer = document.getElementById('simContainer');
+        
+        let audioContext = null;
+        let isAudioEnabled = false;
+        let alarmInterval = null;
+        let oscillator = null;
+
+        // Toggle Audio Setup
+        audioToggle.addEventListener('click', () => {
+            if (!audioContext) {
+                // Initialize browser audio context
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            
+            isAudioEnabled = !isAudioEnabled;
+            if (isAudioEnabled) {
+                audioToggle.textContent = 'Mute Audio Alert';
+                speakerText.textContent = 'Buzzer: Ready';
+                audioToggle.classList.remove('btn-ghost');
+                audioToggle.classList.add('btn-primary');
+            } else {
+                audioToggle.textContent = 'Enable Audio Alert';
+                speakerText.textContent = 'Buzzer: Muted';
+                audioToggle.classList.remove('btn-primary');
+                audioToggle.classList.add('btn-ghost');
+                stopAlarmSound();
+            }
+            updateSimulation();
+        });
+
+        function playBeep() {
+            if (!audioContext || !isAudioEnabled) return;
+            try {
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                
+                oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.type = 'sine'; // clean sine tone
+                oscillator.frequency.value = 2800; // high pitch alert tone
+                
+                // Intermittent piezo pulse envelope
+                gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.02);
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime + 0.12);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.15);
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.16);
+            } catch (e) {
+                console.error("Audio error: ", e);
+            }
+        }
+
+        function startAlarmSound() {
+            if (alarmInterval) return;
+            // Beep every 300ms
+            alarmInterval = setInterval(playBeep, 300);
+        }
+
+        function stopAlarmSound() {
+            if (alarmInterval) {
+                clearInterval(alarmInterval);
+                alarmInterval = null;
+            }
+        }
+
+        function updateSimulation() {
+            const val = parseInt(slider.value);
+            
+            // 1. Water container visual height
+            water.style.height = val + '%';
+            levelVal.textContent = `Depth: ${val}%`;
+            
+            // 2. Clear LED states
+            ledBlue.classList.remove('active');
+            ledOrange.classList.remove('active');
+            ledRed.classList.remove('active');
+            
+            // Clear LCD classes
+            lcd.classList.remove('lcd-warning');
+            lcd.classList.remove('lcd-danger');
+            
+            // Clear Emergency panel flash
+            simContainer.classList.remove('emergency-active');
+            buzzerIcon.classList.remove('active');
+            
+            // 3. Control box logic & LCD string formatting
+            if (val < 50) {
+                // Safe Condition (0 - 49%)
+                ledBlue.classList.add('active');
+                lcd.innerHTML = `
+                    <div style="font-size:0.82rem; font-family:var(--mono);">Water Level: ${val}%</div>
+                    <div style="font-size:0.82rem; font-family:var(--mono); font-weight:600;">Status: SAFE</div>
+                `;
+                stopAlarmSound();
+                if (isAudioEnabled) speakerText.textContent = 'Buzzer: Active (Idle)';
+            } else if (val >= 50 && val < 80) {
+                // Warning Condition (50% - 79%)
+                ledOrange.classList.add('active');
+                lcd.classList.add('lcd-warning');
+                lcd.innerHTML = `
+                    <div style="font-size:0.82rem; font-family:var(--mono); color:#ffa500;">Water Level: ${val}%</div>
+                    <div style="font-size:0.82rem; font-family:var(--mono); font-weight:600; color:#ffa500;">Status: WARNING</div>
+                `;
+                stopAlarmSound();
+                if (isAudioEnabled) speakerText.textContent = 'Buzzer: Active (Idle)';
+            } else {
+                // Danger Flood Condition (80% - 100%)
+                ledRed.classList.add('active');
+                lcd.classList.add('lcd-danger');
+                simContainer.classList.add('emergency-active');
+                buzzerIcon.classList.add('active');
+                
+                lcd.innerHTML = `
+                    <div style="font-size:0.82rem; font-family:var(--mono); color:#ff4d4d;">Water Level: ${val}%</div>
+                    <div style="font-size:0.82rem; font-family:var(--mono); font-weight:600; color:#ff4d4d; animation: pulse 0.6s infinite alternate;">EMERGENCY ALARM</div>
+                `;
+                
+                if (isAudioEnabled) {
+                    speakerText.textContent = 'Buzzer: ALARM!';
+                    startAlarmSound();
+                }
+            }
+        }
+
+        // Event listener on slider drag
+        slider.addEventListener('input', updateSimulation);
+        
+        // Run initial configuration
+        updateSimulation();
+    </script>
+</body>
+
+</html>
